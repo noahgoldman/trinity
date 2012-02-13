@@ -3,11 +3,16 @@
 
 class Robot {
     public:
-        explicit Robot(const Environment &environment);
+        explicit Robot(const Environment&, int, int, int);
 
     private:
+        PID pid;
+        double Input, Output;
+        static double sp;
+
         Environment environment;
-        int GetError() const;
+
+        void SetInput();
 };
 
 #endif
