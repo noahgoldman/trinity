@@ -10,6 +10,8 @@ int room4[] = {left, uturn};
 int path[10];
 int step = 0;
 
+volatile int uv, ir;
+
 // Sensor constants
 const int df, dl1, dl2, dr1, dr2;
 const int fl, fr;
@@ -80,6 +82,14 @@ void check_turn() {
   }
 }
 
+void enter(direction) {
+  robot.turn(direction);
+  while (!room) {
+    robot.drive();
+  }
+  robot.stop();
+}
+
 // The primary navigation function that should be used when navigating the maze.
 //      This should not be called while inside of a room
 void navigate() {
@@ -98,7 +108,7 @@ void check_ir() {
 
 int *getPath() {
   float heading = robot.heading();
-  if ((270 - path_margin > heading && heading < (270 + path_margin) {
+  if ((270 - path_margin) > heading && heading < (270 + path_margin)) {
     return room1;
   }
   else if ((90 - path_margin) < heading && heading < (90 + path_margin)) {
@@ -110,6 +120,24 @@ int *getPath() {
   else if ((360 - path_margin) < heading || heading > (path_margin)) {
     return room4;
   }
+}
+
+// This function should be called directly at the beginning of execution
+//    it drives forward until it hits a wall, then turns left
+void start() {
+  while (robot.front() > close) {
+    drive();
+  }
+  robot.turn(left);
+}
+
+// This is looped continuously you leave the initial room
+void escape() {
+  if (robot.front() < close) {
+    robot.turn(left);
+  }
+  wallFollow();
+}
 
 // The main event loop for the robot should function in the following manner.
 //      -If the robot has not exited the initial room yet, continue to do so.
