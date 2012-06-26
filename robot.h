@@ -9,4 +9,5 @@ class Robot {
         void turnright();
         void turnleft();
         void uturn();
+        float heading();
 };
