@@ -15,27 +15,77 @@ const float sensor_distance;
 // Convert radians to degrees
 inline float radians_to_degrees(float radians) { return ((180 * radians) / PI)}
 
-inline float degrees_to_microseconds(float degrees) { return ((500 * degrees) / 180)}
+inline float degrees_to_microseconds(float degrees) { 
+  return ((500 * degrees) / 180)
+}
 
 float getAngle(int front, int back) {
     return atan((sensor_distance) / (back - front))
 }
 
 // Primary wall following function
-void wall_follow(int dir) {
+void wallFollow(int dir) {
     float angle = getAngle(dir);
     float error = get_wf_error(dir);
     robot.servo(degrees_to_microseconds(angle) + error);
 }
 
-// 
-float get_wf_error(dir) {
+// Calculates the wall following error. Multiplying by the direction (1 or -1) 
+//      should correctly adjust for wall following side
+float getWfError(dir) {
     return ((robot.distance(dir) - ideal)*dir * kPWall);
 }
 
-void drive() {
-    if (robot.ir()) {
-        room = 1;
+// Turning and navigational logic works in the following manner (order is very important):
+// 1. If the UVtrons on either side detect light, turn toward it
+// 2. If the front distance is small, make a U-turn.  This should only occur when there is no light coming
+//      from the rooms on either side
+// 3. If all sides are open (the four corners) always make a left.
+void check_turn() {
+    if (robot.UV_left()) {
+        robot.turnleft();
     }
+    else if (robot.UV_right()) {
+        robot.turnright();
+    }
+    else if (robot.front() < 20) {
+        robot.uturn();
+    }
+    else if (robot.front() > 20 && robot.left() > 20 && robot.right() > 20) {
+        robot.turnleft();
+    }
+}
+
+// The primary navigation function that should be used when navigating the maze.
+//      This should not be called while inside of a room
+void navigate() {
     check_turn();
     wall_follow();
+}
+
+// This function checks if the ir sensor has been activated
+//      1. If the intial_exit var is still false, make it true
+//      2. If its already true, do an xor on the room var
+void check_ir() {
+    int ir = robot.ir();
+    if (!initial_exit) {initial_exit = 1}
+    else {room ^= ir}
+}
+
+// The main event loop for the robot should function in the following manner.
+//      -If the robot has not exited the initial room yet, continue to do so.
+//      -When the robot exits the room, it should make an immediate right turn
+//      -The navigate function should be called continuously until the ir sensor is activated
+//      -The extinguish function will be called until the flame is out
+void loop() {
+    check_ir();
+    if (!initial_exit) {
+        escape();
+    }
+    else if (room) {
+        extinguish();
+    }
+    else {
+        drive();
+    }
+}
