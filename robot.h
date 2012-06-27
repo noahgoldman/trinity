@@ -1,13 +1,20 @@
 class Robot {
     public:
-        explicit Robot();
-        float get_distance(int sensor);
-        float left();
-        float right();
-        float front();
+        explicit Robot(const float close_threshold);
+        int left();
+        int right();
+        int front();
         void fan();
-        void turnright();
-        void turnleft();
-        void uturn();
+        void turn(int direction);
         float heading();
+    private:
+        get_distance(const int sensor);
+
+        float close;
+        int distance_left1;
+        int distance_left2;
+        int distance_right1;
+        int distance_right2;
+        int distance_front;
+        int distance_back;
 };

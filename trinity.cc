@@ -2,10 +2,12 @@
 #define PI 3.1415926535897932384626433832795028841971693993751058209749
 
 // Awkward paths that dont really exist
-int room1[] = {right, left};
-int room2[] = {left, right};
-int room3[] = {uturn, left};
-int room4[] = {left, uturn};
+int room1[] = {left, uturn, left, uturn, straight, left, left};
+int room2[] = {left, left, uturn, straight, left, left};
+int room3[] = {left, right, uturn, right, left, left};
+int room4[] = {right, left, uturn, left};
+int room5[] = {right, left, uturn, straight, left, left};
+int room6[] = {left, left, straight, uturn, left};
 
 int path[10];
 int step = 0;
@@ -53,7 +55,7 @@ float getWfError(dir) {
 void check_turn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (robot.front() > close && robot.left() > close && robot.right()) {
+  if (robot.front() > close && robot.left() > close && robot.right() > close) {
     // Turn according to the path
     robot.turn(path[step]); 
     step++;
@@ -97,13 +99,11 @@ void navigate() {
   wall_follow();
 }
 
-// This function checks if the ir sensor has been activated
-//      1. If the intial_exit var is still false, make it true
-//      2. If its already true, do an xor on the room var
-void check_ir() {
-  int ir = robot.ir();
+// This is some ghetto thing that is really an analog interrupt
+// TODO fix
+ISR(ANALOG_COMP_vect) {
   if (!initial_exit) {initial_exit = 1}
-  else {room ^= ir}
+  else {room = !room}
 }
 
 int *getPath() {
@@ -137,6 +137,18 @@ void escape() {
     robot.turn(left);
   }
   wallFollow();
+}
+
+void setup() {
+  // Shamelessly copy and pasting
+  ACSR = 
+  (0<<ACD) |   // Analog Comparator: Enabled
+  (0<<ACBG) |   // Analog Comparator Bandgap Select: AIN0 is applied to the positive input
+  (0<<ACO) |   // Analog Comparator Output: Off
+  (1<<ACI) |   // Analog Comparator Interrupt Flag: Clear Pending Interrupt
+  (1<<ACIE) |   // Analog Comparator Interrupt: Enabled
+  (0<<ACIC) |   // Analog Comparator Input Capture: Disabled
+  (1<<ACIS1) | (1<ACIS0);   // Analog Comparator Interrupt Mode: Comparator Interrupt on Rising Output Edge
 }
 
 // The main event loop for the robot should function in the following manner.
