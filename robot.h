@@ -1,3 +1,6 @@
+#include "robot.cc"
+#include <Servo.h>
+
 class Robot {
     public:
         explicit Robot(const float close_threshold);
@@ -7,8 +10,15 @@ class Robot {
         void fan();
         void turn(int direction);
         float heading();
+        float distance(const int direction);
+        void UV(const int direction);
+        void caster(float angle);
+        void tower(float angle);
     private:
         get_distance(const int sensor);
+
+        Servo caster;
+        Servo tower;
 
         float close;
         int distance_left1;

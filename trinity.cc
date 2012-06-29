@@ -1,7 +1,7 @@
 #include <math.h>
 #define PI 3.1415926535897932384626433832795028841971693993751058209749
 
-// Awkward paths that dont really exist
+// These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
 int room2[] = {left, left, uturn, straight, left, left};
 int room3[] = {left, right, uturn, right, left, left};
@@ -12,7 +12,8 @@ int room6[] = {left, left, straight, uturn, left};
 int path[10];
 int step = 0;
 
-volatile int uv, ir;
+// These two constants are true if either uv or line is detected
+volatile int uv, line;
 
 // Sensor constants
 const int df, dl1, dl2, dr1, dr2;
@@ -29,10 +30,7 @@ const float close = 20;
 // Convert radians to degrees
 inline float radians_to_degrees(float radians) { return ((270 * radians) / PI)}
 
-inline float degrees_to_microseconds(float degrees) { 
-  return ((500 * degrees) / 270)
-}
-
+// TODO put this in robot.cc ><
 float getAngle(int front, int back) {
   return atan((sensor_distance) / (back - front))
 }
@@ -40,8 +38,8 @@ float getAngle(int front, int back) {
 // Primary wall following function
 void wallFollow(int dir) {
   float angle = getAngle(dir);
-  float error = get_wf_error(dir);
-  robot.servo(degrees_to_microseconds(angle) + error);
+  float error = getWfError(dir);
+  robot.caster(degrees_to_microseconds(angle) + error);
 }
 
 // Calculates the wall following error. Multiplying by the direction (1 or -1) 
@@ -68,16 +66,16 @@ void check_turn() {
   }
   // The next two cases handle when a side is open. You should only turn into
   // the side if the uv tron has activated
-  else if (robot.left()) {
+  else if (robot.left_open()) {
     delay(check_time);
-    robot.UVleft();
+    robot.UV(left);
     if (uv) {
       enter(left);
     }
   }
-  else if (robot.right()) {
+  else if (robot.right_open()) {
     delay(check_time);
-    robot.UVright();
+    robot.UV(right);
     if (uv) {
       enter(right);
     }
@@ -99,13 +97,17 @@ void navigate() {
   wall_follow();
 }
 
-// This is some ghetto thing that is really an analog interrupt
-// TODO fix
+// This is the interrupt handler for the line sensor
 ISR(ANALOG_COMP_vect) {
   if (!initial_exit) {initial_exit = 1}
   else {room = !room}
 }
 
+// This function will return the correct path to follow based on heading
+//    and wall distances
+//
+// TODO the function returns a pointer to the path array, this should likely be
+//    reworked
 int *getPath() {
   float heading = robot.heading();
   if ((270 - path_margin) > heading && heading < (270 + path_margin)) {
@@ -132,6 +134,9 @@ void start() {
 }
 
 // This is looped continuously you leave the initial room
+//
+// The robot should simply wall follow forward until it hits a wall
+//    then turn left
 void escape() {
   if (!robot.front_open()) {
     robot.turn(left);
@@ -140,15 +145,8 @@ void escape() {
 }
 
 void setup() {
-  // Shamelessly copy and pasting
-  ACSR = 
-  (0<<ACD) |   // Analog Comparator: Enabled
-  (0<<ACBG) |   // Analog Comparator Bandgap Select: AIN0 is applied to the positive input
-  (0<<ACO) |   // Analog Comparator Output: Off
-  (1<<ACI) |   // Analog Comparator Interrupt Flag: Clear Pending Interrupt
-  (1<<ACIE) |   // Analog Comparator Interrupt: Enabled
-  (0<<ACIC) |   // Analog Comparator Input Capture: Disabled
-  (1<<ACIS1) | (1<ACIS0);   // Analog Comparator Interrupt Mode: Comparator Interrupt on Rising Output Edge
+  // Analog comparator stuff
+  ACSR = B01011010;
 }
 
 // The main event loop for the robot should function in the following manner.
