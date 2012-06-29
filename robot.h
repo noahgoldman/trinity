@@ -1,9 +1,9 @@
 class Robot {
     public:
         explicit Robot(const float close_threshold);
-        int left();
-        int right();
-        int front();
+        int left_open();
+        int right_open();
+        int front_open();
         void fan();
         void turn(int direction);
         float heading();

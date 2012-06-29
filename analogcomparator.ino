@@ -1,4 +1,4 @@
-/*
+;;/*
 Code to interface with the analog comparator.
 The analog comparator output is pulled low
 if voltage applied by positive input < negative input
@@ -14,7 +14,7 @@ pinMode(5,INPUT);
 Serial.begin(9600);
 
 //Write to the Analog Comparator Control and Status Register
-ACSR = B01011010
+ACSR = B01011010;
 /*
 bit 7: 0 enables analog comparator. 
        1 switches it off.
@@ -39,5 +39,5 @@ void loop() {
 
 //Interrupt service request for the analog comparator
 ISR(ANALOG_COMP_vect) {
-Serial.println("Interrupt Executed!");
+    Serial.println("Interrupt Executed!");
 }

@@ -55,27 +55,27 @@ float getWfError(dir) {
 void check_turn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (robot.front() > close && robot.left() > close && robot.right() > close) {
+  if (robot.front_open() && robot.left_open() && robot.right_open()) {
     // Turn according to the path
     robot.turn(path[step]); 
     step++;
   }
   // If the robot is about to crash, it probably shouldn't
   // Run the next step in the path if the front is closed
-  else if (robot.front() < close) {
+  else if (!robot.front_open()) {
     robot.turn(path[step]);
     step++;
   }
   // The next two cases handle when a side is open. You should only turn into
   // the side if the uv tron has activated
-  else if (robot.left() > close) {
+  else if (robot.left()) {
     delay(check_time);
     robot.UVleft();
     if (uv) {
       enter(left);
     }
   }
-  else if (robot.right() > close) {
+  else if (robot.right()) {
     delay(check_time);
     robot.UVright();
     if (uv) {
@@ -125,7 +125,7 @@ int *getPath() {
 // This function should be called directly at the beginning of execution
 //    it drives forward until it hits a wall, then turns left
 void start() {
-  while (robot.front() > close) {
+  while (robot.front_open()) {
     drive();
   }
   robot.turn(left);
@@ -133,7 +133,7 @@ void start() {
 
 // This is looped continuously you leave the initial room
 void escape() {
-  if (robot.front() < close) {
+  if (!robot.front_open()) {
     robot.turn(left);
   }
   wallFollow();

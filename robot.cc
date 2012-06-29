@@ -1,6 +1,7 @@
 const int left = -1, right = 1, uturn = 0, forward = 2, back = 3;
 const float center = 1500;
 
+// Assign the threshold to 
 void Robot::Robot(const float close_threshold, distance_between)
   : close(close_threshold),
   sensor_distance(distance_between) {}
@@ -10,18 +11,18 @@ void Robot::getDistance(const int sensor) {
   pass;
 }
 
-int Robot::left() { 
-  return (Robot.get_distance(distance_left1) < Robot.close &&
-      Robot.get_distance(distance_left2) < Robot.close);
+int Robot::left_open() { 
+  return (Robot.get_distance(distance_left1) > Robot.close &&
+      Robot.get_distance(distance_left2) > Robot.close);
 }
 
-int Robot::right() {
-  return (Robot.get_distance(distance_right1) < Robot.close &&
-      Robot.get_distance(distance_right2) < Robot.close);
+int Robot::right_open() {
+  return (Robot.get_distance(distance_right1) > Robot.close &&
+      Robot.get_distance(distance_right2) > Robot.close);
 }
 
-int Robot::front() {
-  return (Robot.get_distance(distance_front) < Robot.close);
+int Robot::front_open() {
+  return (Robot.get_distance(distance_front) > Robot.close);
 }
 
 int Robot::distance(const int direction) {
