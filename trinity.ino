@@ -1,6 +1,19 @@
 #include <math.h>
 #include <Servo.h>
-#define PI 3.1415926535897932384626433832795028841971693993751058209749
+#include "robot.h"
+
+// These two constants are true if either uv or line is detected
+volatile int uv, line, room;
+
+// Operational constants
+const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
+const int straight = front;
+const float center = 1500;
+const float ideal = 20;
+const float kPWall = 0;
+const float sensor_distance = 10;
+const float close = 20;
+const int check_time = 1000;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -13,40 +26,35 @@ int room6[] = {left, left, straight, uturn, left};
 int path[10];
 int step = 0;
 
-// These two constants are true if either uv or line is detected
-volatile int uv, line;
-
-// Sensor constants
-const int df, dl1, dl2, dr1, dr2;
-const int fl, fr;
-
-// Operational constants
-const int left = -1, right = 1, uturn = 0;
-const float center = 1500;
-const float ideal = 20;
-const float kPwall;
-const float sensor_distance;
-const float close = 20;
+Robot robot(close, sensor_distance);
 
 // Convert radians to degrees
-inline float radians_to_degrees(float radians) { return ((270 * radians) / PI)}
+inline float radians_to_degrees(float radians) { return ((270 * radians) / PI);}
 
 // TODO put this in robot.cc ><
 float getAngle(int front, int back) {
-  return atan((sensor_distance) / (back - front))
+  return atan((sensor_distance) / (back - front));
+}
+
+// Calculates the wall following error. Multiplying by the direction (1 or -1) 
+//      should correctly adjust for wall following side
+float getWfError(const int dir) {
+  return ((robot.distance(dir) - ideal)*dir * kPWall);
 }
 
 // Primary wall following function
 void wallFollow(int dir) {
   float angle = getAngle(dir);
   float error = getWfError(dir);
-  robot.caster(degrees_to_microseconds(angle) + error);
+  robot.caster(angle + error);
 }
 
-// Calculates the wall following error. Multiplying by the direction (1 or -1) 
-//      should correctly adjust for wall following side
-float getWfError(dir) {
-  return ((robot.distance(dir) - ideal)*dir * kPWall);
+void enter(const int dir) {
+  robot.turn(dir);
+  while (!room) {
+    robot.drive();
+  }
+  robot.stop();
 }
 
 // Turning and navigational logic works in the following manner (order is very 
@@ -83,13 +91,6 @@ void check_turn() {
   }
 }
 
-void enter(direction) {
-  robot.turn(direction);
-  while (!room) {
-    robot.drive();
-  }
-  robot.stop();
-}
 
 // The primary navigation function that should be used when navigating the maze.
 //      This should not be called while inside of a room
