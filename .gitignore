@@ -12,3 +12,11 @@
 *.lai
 *.la
 *.a
+
+*,elf
+*.hex
+env/
+build/
+.sconsign.dblite
+
+.pro
