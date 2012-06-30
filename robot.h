@@ -7,22 +7,29 @@ class Robot {
         int left_open();
         int right_open();
         int front_open();
+        float getAngle(const int direction);
+        float distance(const int direction);
         void fan();
         void turn(int direction);
         float heading();
-        float distance(const int direction);
         void UV(const int direction);
         void caster(float angle);
         void tower(float angle);
+        void motor();
         void motor(int left_motor, int right_motor);
+        void stop();
+        void drive(int time);
+        float flame();
     private:
         float getDistance(const int sensor);
+        float calcAngle(float distance1, float distance2);
 
         Servo caster_servo;
         Servo tower_servo;
 
         float close;
         float sensor_distance;
+        int base_speed;
         int distance_left1;
         int distance_left2;
         int distance_right1;

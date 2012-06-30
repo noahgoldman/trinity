@@ -3,7 +3,7 @@
 #include "robot.h"
 
 // These two constants are true if either uv or line is detected
-volatile int uv, line, room;
+volatile int uv, line, room, initial_exit;
 
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
@@ -14,6 +14,7 @@ const float kPWall = 0;
 const float sensor_distance = 10;
 const float close = 20;
 const int check_time = 1000;
+const int path_margin = 20;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -43,8 +44,18 @@ float getWfError(const int dir) {
 }
 
 // Primary wall following function
-void wallFollow(int dir) {
-  float angle = getAngle(dir);
+void wallFollow() {
+  int dir;
+  if (!robot.left_open()) {
+    dir = left;
+  }
+  else if (!robot.right_open()) {
+    dir = right; 
+  }
+  else {
+    robot.motor();
+  }
+  float angle = robot.getAngle(dir);
   float error = getWfError(dir);
   robot.caster(angle + error);
 }
@@ -52,7 +63,7 @@ void wallFollow(int dir) {
 void enter(const int dir) {
   robot.turn(dir);
   while (!room) {
-    robot.drive();
+    robot.motor();
   }
   robot.stop();
 }
@@ -96,13 +107,13 @@ void check_turn() {
 //      This should not be called while inside of a room
 void navigate() {
   check_turn();
-  wall_follow();
+  wallFollow();
 }
 
 // This is the interrupt handler for the line sensor
 ISR(ANALOG_COMP_vect) {
-  if (!initial_exit) {initial_exit = 1}
-  else {room = !room}
+  if (!initial_exit) {initial_exit = 1;}
+  else {room = !room;}
 }
 
 // This function will return the correct path to follow based on heading
@@ -119,7 +130,7 @@ int *getPath() {
     return room2;
   }
   else if ((180 - path_margin) < heading && heading < (180 + path_margin)) {
-    return room3[];
+    return room3;
   }
   else if ((360 - path_margin) < heading || heading > (path_margin)) {
     return room4;
@@ -130,7 +141,7 @@ int *getPath() {
 //    it drives forward until it hits a wall, then turns left
 void start() {
   while (robot.front_open()) {
-    drive();
+    robot.motor();
   }
   robot.turn(left);
 }
@@ -146,6 +157,27 @@ void escape() {
   wallFollow();
 }
 
+// This is the function that should be called upon entering the room
+// with the candle
+//
+// Do a sweep for the max flame value then fire the fans
+void extinguish() {
+  int candle_angle;
+  int tower_angle = 1;
+  int max = 0;
+  while (tower_angle <= 90) {
+    robot.tower(tower_angle);
+    int current_flame = robot.flame();
+    if (current_flame > max) {
+      max = current_flame;
+    }
+    tower_angle++;
+  }
+  
+  robot.tower(max);
+  robot.fan();
+}
+
 void setup() {
   // Analog comparator stuff
   ACSR = B01011010;
@@ -158,7 +190,6 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  check_ir();
   if (!initial_exit) {
     escape();
   }
@@ -166,6 +197,6 @@ void loop() {
     extinguish();
   }
   else {
-    drive();
+    navigate();
   }
 }
