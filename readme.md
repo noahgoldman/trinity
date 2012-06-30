@@ -9,3 +9,8 @@ Scons can be used on linux to compile and upload the code while avoiding the ide
  - install scons
 
 To use, type "scons" to compile, and "scons upload" to upload
+
+When getting the error "error: attempt to use poisoned 'SIG_USART0_RECV'":
+
+ - Add "#define __AVR_LIBC_DEPRECATED_ENABLE__ 1" to
+    /usr/share/arduino/hardware/arduino/cores/arduino/Arduino.h
