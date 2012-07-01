@@ -177,6 +177,7 @@ void extinguish() {
 void setup() {
   // Analog comparator stuff
   ACSR = B01011010;
+  robot.setup();
 }
 
 // The main event loop for the robot should function in the following manner.
