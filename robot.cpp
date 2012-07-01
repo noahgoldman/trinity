@@ -1,13 +1,24 @@
 #include "robot.h"
 #include <math.h>
+#include <Wire.h>
 #if ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
 #endif
 
+#define MAG_ADDR 0x0E
+
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const float center = 90;
+
+const int flame1 = 7;
+const int fanpin = 25;
+const int left_back = 0, left_front = 1, right_back = 2, right_front = 3,
+      distance_front = 4, distance_back = 5;
+const int caster_pin = 9, tower_pin = 11;
+const int uvtron = 3, line = 5;
+
 
 // Assign the threshold to 
 Robot::Robot(const float close_threshold, const float distance_between)
@@ -19,13 +30,13 @@ float Robot::getDistance(const int sensor) {
 }
 
 int Robot::left_open() { 
-  return (this->getDistance(distance_left1) > this->close &&
-    this->getDistance(distance_left2) > this->close);
+  return (this->getDistance(left_front) > this->close &&
+    this->getDistance(left_back) > this->close);
 }
 
 int Robot::right_open() {
-  return (this->getDistance(distance_right1) > this->close &&
-    this->getDistance(distance_right2) > this->close);
+  return (this->getDistance(right_front) > this->close &&
+    this->getDistance(right_back) > this->close);
 }
 
 int Robot::front_open() {
@@ -40,12 +51,12 @@ float Robot::calcAngle(float distance1, float distance2) {
 float Robot::getAngle(const int direction) {
   float distance1, distance2;
   if (direction == left) {
-    distance1 = this->getDistance(distance_left1);
-    distance2 = this->getDistance(distance_left2);
+    distance1 = this->getDistance(left_front);
+    distance2 = this->getDistance(left_back);
   }
   else if (direction == right) {
-    distance1 = this->getDistance(distance_right1);
-    distance2 = this->getDistance(distance_right2);
+    distance1 = this->getDistance(right_front);
+    distance2 = this->getDistance(right_back);
   }
   return this->calcAngle(distance1, distance2);
 } 
@@ -53,18 +64,18 @@ float Robot::getAngle(const int direction) {
 float Robot::distance(const int direction) {
   float distance1, distance2;
   if (direction == left) {
-    distance1 = this->getDistance(distance_left1);
-    distance2 = this->getDistance(distance_left2);
+    distance1 = this->getDistance(left_front);
+    distance2 = this->getDistance(left_back);
   }
   else if (direction == right) {
-    distance1 = this->getDistance(distance_right1);
-    distance2 = this->getDistance(distance_right2);
+    distance1 = this->getDistance(right_front);
+    distance2 = this->getDistance(right_back);
   }
   else if (direction == front) {
     return this->getDistance(distance_front);
   }
   else if (direction == back) {
-    return this->getDistance(distance_back);
+    return this->getDistance(back);
   }
   float theta = this->calcAngle(distance1, distance2);
   float pdist = ((distance1+distance2)*cos(theta))/2;
@@ -118,4 +129,59 @@ void Robot::motor(int left, int right) {
 
 int Robot::flame() {
   return analogRead(flame1);
+}
+
+void Robot::stop() {
+  this->motor(64, 64);
+}
+
+void Robot::fan() {
+  digitalWrite(fanpin, HIGH);
+  delay(1750);
+  digitalWrite(fanpin, LOW);
+}
+
+void Robot::configMagnetometer() {
+  Wire.beginTransmission(MAG_ADDR); //transmit to magnetometer
+  Wire.write(0x11); //cntrl register2
+  Wire.write(0x80); //send 0x80, enable auto resets
+  Wire.endTransmission();
+  Wire.beginTransmission(MAG_ADDR); 
+  Wire.write(0x10); //cntrl register2
+  Wire.write(1); //send 0x01, active mode
+  Wire.endTransmission(); 
+}
+
+void Robot::setup() {
+  Serial1.begin(9600);
+  this->caster_servo.attach(caster_pin);
+  this->tower_servo.attach(tower_pin);
+  pinMode(fanpin, INPUT);
+
+  pinMode(uvtron, OUTPUT);
+  pinMode(line, OUTPUT);
+
+  this->configMagnetometer();    
+}
+
+float Robot::heading() {
+  int zl, zh; //define the MSB and LSB
+  Wire.beginTransmission(MAG_ADDR); 
+  Wire.write(0x05); //z MSB reg
+  Wire.endTransmission();
+  delayMicroseconds(2);
+  Wire.requestFrom(MAG_ADDR, 1); //request 1 byte
+  while(Wire.available()) {
+    zh = Wire.read();
+  }
+  Wire.beginTransmission(MAG_ADDR);
+  Wire.write(0x06); //z LSB reg
+  Wire.endTransmission();
+  delayMicroseconds(2);
+  Wire.requestFrom(MAG_ADDR, 1); //request 1 byte
+  while(Wire.available()) {
+    zl = Wire.read();
+  }
+  int zout = (zl|(zh <<8)); //concatenate the MSB and LSB
+  return zout;
 }

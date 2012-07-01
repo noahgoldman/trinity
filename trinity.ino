@@ -1,6 +1,7 @@
 #include <math.h>
 #include <Servo.h>
 #include "robot.h"
+#include <Wire.h>
 
 // These two constants are true if either uv or line is detected
 volatile int uv, line, room, initial_exit;
@@ -31,11 +32,6 @@ Robot robot(close, sensor_distance);
 
 // Convert radians to degrees
 inline float radians_to_degrees(float radians) { return ((270 * radians) / PI);}
-
-// TODO put this in robot.cc ><
-float getAngle(int front, int back) {
-  return atan((sensor_distance) / (back - front));
-}
 
 // Calculates the wall following error. Multiplying by the direction (1 or -1) 
 //      should correctly adjust for wall following side

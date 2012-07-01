@@ -19,10 +19,12 @@ class Robot {
         void motor(int left_motor, int right_motor);
         void stop();
         void drive(int time);
-        float flame();
+        int flame();
+        void setup();
     private:
         float getDistance(const int sensor);
         float calcAngle(float distance1, float distance2);
+        void configMagnetometer();
 
         Servo caster_servo;
         Servo tower_servo;
