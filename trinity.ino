@@ -1,7 +1,7 @@
-#include <math.h>
 #include <Servo.h>
 #include "robot.h"
 #include <Wire.h>
+#include "Arduino.h"
 
 // These two constants are true if either uv or line is detected
 volatile int uv, line, room, initial_exit;
