@@ -17,7 +17,7 @@ const int fanpin = 25;
 const int left_back = 0, left_front = 1, right_back = 2, right_front = 3,
       distance_front = 4, distance_back = 5;
 const int caster_pin = 9, tower_pin = 11;
-const int uvtron = 3, line = 5;
+const int uvtron = 3, line = 5, start = 29;
 
 
 // Assign the threshold to 
@@ -158,8 +158,7 @@ void Robot::setup() {
   this->tower_servo.attach(tower_pin);
   pinMode(fanpin, INPUT);
 
-  pinMode(uvtron, OUTPUT);
-  pinMode(line, OUTPUT);
+  pinMode(start, OUTPUT);
 
   this->configMagnetometer();    
 }
