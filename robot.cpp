@@ -163,7 +163,7 @@ void Robot::setup() {
   this->configMagnetometer();    
 }
 
-float Robot::heading() {
+int Robot::heading() {
   int zl, zh; //define the MSB and LSB
   Wire.beginTransmission(MAG_ADDR); 
   Wire.write(0x05); //z MSB reg
