@@ -13,7 +13,7 @@
 *.la
 *.a
 
-*,elf
+*.elf
 *.hex
 env/
 build/
