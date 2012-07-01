@@ -156,9 +156,9 @@ void Robot::setup() {
   Serial1.begin(9600);
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
-  pinMode(fanpin, INPUT);
+  pinMode(start, INPUT);
 
-  pinMode(start, OUTPUT);
+  pinMode(fanpin, OUTPUT);
 
   this->configMagnetometer();    
 }
