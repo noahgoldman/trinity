@@ -16,6 +16,7 @@ const float sensor_distance = 10;
 const float close = 20;
 const int check_time = 1000;
 const int path_margin = 20;
+const int speed = 80;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -28,7 +29,7 @@ int room6[] = {left, left, straight, uturn, left};
 int path[10];
 int step = 0;
 
-Robot robot(close, sensor_distance);
+Robot robot(close, sensor_distance, speed);
 
 // Convert radians to degrees
 inline float radians_to_degrees(float radians) { return ((270 * radians) / PI);}
@@ -42,10 +43,10 @@ float getWfError(const int dir) {
 // Primary wall following function
 void wallFollow() {
   int dir;
-  if (!robot.left_open()) {
+  if (!robot.open(left)) {
     dir = left;
   }
-  else if (!robot.right_open()) {
+  else if (!robot.open(right)) {
     dir = right; 
   }
   else {
@@ -69,27 +70,27 @@ void enter(const int dir) {
 void check_turn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (robot.front_open() && robot.left_open() && robot.right_open()) {
+  if (robot.open(front) && robot.open(left) && robot.open(right)) {
     // Turn according to the path
     robot.turn(path[step]); 
     step++;
   }
   // If the robot is about to crash, it probably shouldn't
   // Run the next step in the path if the front is closed
-  else if (!robot.front_open()) {
+  else if (!robot.open(front)) {
     robot.turn(path[step]);
     step++;
   }
   // The next two cases handle when a side is open. You should only turn into
   // the side if the uv tron has activated
-  else if (robot.left_open()) {
+  else if (robot.open(left)) {
     delay(check_time);
     robot.UV(left);
     if (uv) {
       enter(left);
     }
   }
-  else if (robot.right_open()) {
+  else if (robot.open(right)) {
     delay(check_time);
     robot.UV(right);
     if (uv) {
@@ -136,7 +137,7 @@ int *getPath() {
 // This function should be called directly at the beginning of execution
 //    it drives forward until it hits a wall, then turns left
 void start() {
-  while (robot.front_open()) {
+  while (robot.open(front)) {
     robot.motor();
   }
   robot.turn(left);
@@ -147,7 +148,7 @@ void start() {
 // The robot should simply wall follow forward until it hits a wall
 //    then turn left
 void escape() {
-  if (!robot.front_open()) {
+  if (!robot.open(front)) {
     robot.turn(left);
   }
   wallFollow();

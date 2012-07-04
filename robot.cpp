@@ -21,26 +21,33 @@ const int uvtron = 3, line = 5, start = 29;
 
 
 // Assign the threshold to 
-Robot::Robot(const float close_threshold, const float distance_between)
+Robot::Robot(const float close_threshold, const float distance_between,
+    const int speed)
   : close(close_threshold),
-  sensor_distance(distance_between) {}
+  sensor_distance(distance_between),
+  base_speed(speed) {}
 
 float Robot::getDistance(const int sensor) {
   // TODO implement like it was in the old code
 }
 
-int Robot::left_open() { 
-  return (this->getDistance(left_front) > this->close &&
-    this->getDistance(left_back) > this->close);
-}
-
-int Robot::right_open() {
-  return (this->getDistance(right_front) > this->close &&
-    this->getDistance(right_back) > this->close);
-}
-
-int Robot::front_open() {
-  return (this->getDistance(distance_front) > this->close);
+int Robot::open(const int direction) {
+  switch (direction) {
+    case left: 
+      return (this->getDistance(left_front) > this->close &&
+        this->getDistance(left_back) > this->close);
+      break;
+    case right:
+      return (this->getDistance(right_front) > this->close &&
+        this->getDistance(right_back) > this->close);
+      break;
+    case front:
+      return (this->getDistance(distance_front) > this->close);
+      break;
+    case back:
+      return (this->getDistance(distance_back) > this->close);
+      break;
+  }
 }
 
 float Robot::calcAngle(float distance1, float distance2) {

@@ -3,10 +3,8 @@
 class Robot {
     public:
         explicit Robot(const float close_threshold, 
-            const float distance_between);
-        int left_open();
-        int right_open();
-        int front_open();
+            const float distance_between, const int speed);
+        int open(const int direction);
         float getAngle(const int direction);
         float distance(const int direction);
         void fan();
@@ -32,10 +30,4 @@ class Robot {
         float close;
         float sensor_distance;
         int base_speed;
-        int distance_left1;
-        int distance_left2;
-        int distance_right1;
-        int distance_right2;
-        int distance_front;
-        int distance_back;
 };
