@@ -19,8 +19,8 @@ class Robot {
         void drive(int time);
         int flame();
         void setup();
-    private:
         float getDistance(const int sensor);
+    private:
         float calcAngle(float distance1, float distance2);
         void configMagnetometer();
 
