@@ -34,9 +34,7 @@ float Robot::getDistance(const int sensor) {
 }
 
 float Robot::distanceRegression(float voltage) {
-  float distance = -0.0000745831*pow(voltage, 5) + 0.00942493*pow(voltage, 4)
-    - .459659*pow(voltage, 3) + 10.9663*pow(voltage,2) - 135.511*voltage 
-    + 866.963;
+  float distance = 384.379-9.60976*voltage;
   return distance;
 }
 
