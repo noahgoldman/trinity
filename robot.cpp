@@ -28,7 +28,9 @@ Robot::Robot(const float close_threshold, const float distance_between,
   base_speed(speed) {}
 
 float Robot::getDistance(const int sensor) {
-  // TODO implement like it was in the old code
+  int voltage = analogRead(sensor);
+  float distance = -170.58*log(0.0206735*voltage);
+  return distance;
 }
 
 int Robot::open(const int direction) {
