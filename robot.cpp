@@ -9,6 +9,14 @@
 
 #define MAG_ADDR 0x0E
 
+#define GYRO_ADDR 105
+// Gyro values
+#define CTRL_REG1 0x20
+#define CTRL_REG2 0x21
+#define CTRL_REG3 0x22
+#define CTRL_REG4 0x23
+#define CTRL_REG5 0x24
+
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const float center = 90;
 
@@ -167,6 +175,7 @@ void Robot::configMagnetometer() {
 }
 
 void Robot::setup() {
+  Wire.begin();
   Serial1.begin(9600);
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
@@ -198,3 +207,57 @@ int Robot::heading() {
   int zout = (zl|(zh <<8)); //concatenate the MSB and LSB
   return zout;
 }
+
+int Robot::writeRegister(int deviceAddress, byte address, byte val) {
+  Wire.beginTransmission(deviceAddress); // start transmission to device 
+  Wire.write(address);       // send register address
+  Wire.write(val);         // send value to write
+  Wire.endTransmission();     // end transmission
+}
+
+int Robot::readRegister(int deviceAddress, byte address) {
+  int v;
+  Wire.beginTransmission(deviceAddress);
+  Wire.write(address); // register to read
+  Wire.endTransmission();
+
+  Wire.requestFrom(deviceAddress, 1); // read a byte
+
+  while(!Wire.available()) {
+      // waiting
+  }
+}
+
+// Scale can be 250, 500, or 2000
+void Robot::configGyro(int scale) {
+  // Enable x, y, z and turn off power down:
+  writeRegister(GYRO_ADDR, CTRL_REG1, 0b00001111);
+
+  // If you'd like to adjust/use the HPF, you can edit the line below to configure CTRL_REG2:
+  writeRegister(GYRO_ADDR, CTRL_REG2, 0b00000000);
+
+  // Configure CTRL_REG3 to generate data ready interrupt on INT2
+  // No interrupts used on INT1, if you'd like to configure INT1
+  // or INT2 otherwise, consult the datasheet:
+  writeRegister(GYRO_ADDR, CTRL_REG3, 0b00001000);
+
+  // CTRL_REG4 controls the full-scale range, among other things:
+  if(scale == 250){
+    writeRegister(GYRO_ADDR, CTRL_REG4, 0b00000000);
+  }else if(scale == 500){
+    writeRegister(GYRO_ADDR, CTRL_REG4, 0b00010000);
+  }else{
+    writeRegister(GYRO_ADDR, CTRL_REG4, 0b00110000);
+  }
+
+  // CTRL_REG5 controls high-pass filtering of outputs, use it
+  // if you'd like:
+  writeRegister(GYRO_ADDR, CTRL_REG5, 0b00000000);
+}
+
+int Robot::gyro() {
+  byte xMSB = readRegister(GYRO_ADDR, 0x29);
+  byte xLSB = readRegister(GYRO_ADDR, 0x28);
+  return ((xMSB << 8) | xLSB);
+}
+

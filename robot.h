@@ -1,4 +1,13 @@
+#ifndef FOO_BAR_BAZ_H_
+#define FOO_BAR_BAZ_H_
+
 #include <Servo.h>
+
+#if ARDUINO >= 100
+  #include "Arduino.h"
+#else
+  #include "WProgram.h"
+#endif
 
 class Robot {
     public:
@@ -20,10 +29,14 @@ class Robot {
         int flame();
         void setup();
         float getDistance(const int sensor);
+        int gyro();
     private:
         float calcAngle(float distance1, float distance2);
         float distanceRegression(float voltage);
         void configMagnetometer();
+        int writeRegister(int deviceAddress, byte address, byte val);
+        int readRegister(int deviceAddress, byte address);
+        void configGyro(int scale);
 
         Servo caster_servo;
         Servo tower_servo;
@@ -32,3 +45,5 @@ class Robot {
         float sensor_distance;
         int base_speed;
 };
+
+#endif
