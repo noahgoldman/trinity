@@ -1,6 +1,7 @@
 #include "robot.h"
 #include <math.h>
 #include <Wire.h>
+#include "HMC5883L.h"
 #if ARDUINO >= 100
   #include "Arduino.h"
 #else
@@ -28,12 +29,14 @@ const int caster_pin = 9, tower_pin = 11;
 const int uvtron = 3, line = 5, start = 29;
 
 
-// Assign the threshold to 
+// Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
     const int speed)
   : close(close_threshold),
   sensor_distance(distance_between),
   base_speed(speed) {}
+
+HMC5883L compass;
 
 float Robot::getDistance(const int sensor) {
   int voltage = analogRead(sensor);
@@ -48,7 +51,7 @@ float Robot::distanceRegression(float voltage) {
 
 int Robot::open(const int direction) {
   switch (direction) {
-    case left: 
+    case left:
       return (this->getDistance(left_front) > this->close &&
         this->getDistance(left_back) > this->close);
       break;
@@ -164,14 +167,14 @@ void Robot::fan() {
 }
 
 void Robot::configMagnetometer() {
-  Wire.beginTransmission(MAG_ADDR); //transmit to magnetometer
-  Wire.write(0x11); //cntrl register2
-  Wire.write(0x80); //send 0x80, enable auto resets
-  Wire.endTransmission();
-  Wire.beginTransmission(MAG_ADDR); 
-  Wire.write(0x10); //cntrl register2
-  Wire.write(1); //send 0x01, active mode
-  Wire.endTransmission(); 
+  compass = HMC5883L();
+
+  int error;
+  error = compass.SetScale(1.3);
+  if(error != 0) Serial.println(compass.GetErrorText(error)); //check if there is an error, and print if so
+
+  error = compass.SetMeasurementMode(Measurement_Continuous); // Set the measurement mode to Continuous
+  if(error != 0) Serial.println(compass.GetErrorText(error)); //check if there is an error, and print if so
 }
 
 void Robot::setup() {
@@ -184,28 +187,19 @@ void Robot::setup() {
   pinMode(fanpin, OUTPUT);
 
   this->configMagnetometer();    
+  this->configGyro(2000);
 }
 
 int Robot::heading() {
-  int zl, zh; //define the MSB and LSB
-  Wire.beginTransmission(MAG_ADDR); 
-  Wire.write(0x05); //z MSB reg
-  Wire.endTransmission();
-  delayMicroseconds(2);
-  Wire.requestFrom(MAG_ADDR, 1); //request 1 byte
-  while(Wire.available()) {
-    zh = Wire.read();
-  }
-  Wire.beginTransmission(MAG_ADDR);
-  Wire.write(0x06); //z LSB reg
-  Wire.endTransmission();
-  delayMicroseconds(2);
-  Wire.requestFrom(MAG_ADDR, 1); //request 1 byte
-  while(Wire.available()) {
-    zl = Wire.read();
-  }
-  int zout = (zl|(zh <<8)); //concatenate the MSB and LSB
-  return zout;
+ //Get the reading from the HMC5883L and calculate the heading
+ MagnetometerScaled scaled = compass.ReadScaledAxis(); //scaled values from compass.
+ float heading = atan2(scaled.YAxis, scaled.XAxis);
+
+ // Correct for when signs are reversed.
+ if(heading < 0) heading += 2*PI;
+ if(heading > 2*PI) heading -= 2*PI;
+
+ return heading * RAD_TO_DEG; //radians to degrees
 }
 
 int Robot::writeRegister(int deviceAddress, byte address, byte val) {
@@ -216,20 +210,25 @@ int Robot::writeRegister(int deviceAddress, byte address, byte val) {
 }
 
 int Robot::readRegister(int deviceAddress, byte address) {
-  int v;
-  Wire.beginTransmission(deviceAddress);
-  Wire.write(address); // register to read
-  Wire.endTransmission();
+    int v;
+    Wire.beginTransmission(deviceAddress);
+    Wire.write(address); // register to read
+    Wire.endTransmission();
 
-  Wire.requestFrom(deviceAddress, 1); // read a byte
+    Wire.requestFrom(deviceAddress, 1); // read a byte
 
-  while(!Wire.available()) {
-      // waiting
-  }
+    while(!Wire.available()) {
+        // waiting
+    }
+
+    v = Wire.read();
+    return v;
 }
 
 // Scale can be 250, 500, or 2000
 void Robot::configGyro(int scale) {
+  //From  Jim Lindblom of Sparkfun's code
+
   // Enable x, y, z and turn off power down:
   writeRegister(GYRO_ADDR, CTRL_REG1, 0b00001111);
 
@@ -242,6 +241,7 @@ void Robot::configGyro(int scale) {
   writeRegister(GYRO_ADDR, CTRL_REG3, 0b00001000);
 
   // CTRL_REG4 controls the full-scale range, among other things:
+
   if(scale == 250){
     writeRegister(GYRO_ADDR, CTRL_REG4, 0b00000000);
   }else if(scale == 500){
@@ -256,8 +256,8 @@ void Robot::configGyro(int scale) {
 }
 
 int Robot::gyro() {
-  byte xMSB = readRegister(GYRO_ADDR, 0x29);
-  byte xLSB = readRegister(GYRO_ADDR, 0x28);
-  return ((xMSB << 8) | xLSB);
+  byte zMSB = readRegister(GYRO_ADDR, 0x2D);
+  byte zLSB = readRegister(GYRO_ADDR, 0x2C);
+  return ((zMSB << 8) | zLSB);
 }
 

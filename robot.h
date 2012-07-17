@@ -1,5 +1,5 @@
-#ifndef FOO_BAR_BAZ_H_
-#define FOO_BAR_BAZ_H_
+#ifndef ROBOT_H
+#define ROBOT_H 
 
 #include <Servo.h>
 
