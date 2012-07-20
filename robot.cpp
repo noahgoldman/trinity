@@ -117,8 +117,10 @@ void Robot::turn(const int direction) {
     this->caster(90*direction);
     this->motor(80, 48); // TODO add real numbers
     int heading = this->heading();
-    while (heading < initial_angle + 90*direction) {
+    while (heading > initial_angle - 90*direction) {
       heading = this->heading();
+      Serial.print("[magneto]");
+      Serial.println(heading);
     }
     this->caster(center);
     this->motor(80, 80);
@@ -211,7 +213,7 @@ int Robot::heading() {
   // Both x and y need to have their centers adjusted and x's range 
   // is changed as well
   x -= 580;
-  x *= 483/423;
+  x *= -483/423;
   y += 135.5;
 
   float heading = atan2(x, y);
