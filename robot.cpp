@@ -114,9 +114,12 @@ void Robot::turn(const int direction) {
     this->motor(80, 80);
   }
   else {
-    this->caster(500*direction);
+    this->caster(90*direction);
     this->motor(80, 48); // TODO add real numbers
-    while (this->heading() < initial_angle + 90*direction) {}
+    int heading = this->heading();
+    while (heading < initial_angle + 90*direction) {
+      heading = this->heading();
+    }
     this->caster(center);
     this->motor(80, 80);
   }
@@ -164,17 +167,8 @@ void Robot::fan() {
 }
 
 void Robot::configMagnetometer() {
-  // Set the samples averaged to 8, the rate to 15Hz,
-  // and normal measurement mode
-  Wire.beginTransmission(MAG_ADDR);
-  Wire.write(0x3C);
-  Wire.write(0x00);
-  Wire.write(0x70);
-  Wire.endTransmission();
-
   // Set the mode to continuous measurement
   Wire.beginTransmission(MAG_ADDR);
-  Wire.write(0x3C);
   Wire.write(0x02);
   Wire.write(0x00);
   Wire.endTransmission();
