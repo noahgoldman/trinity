@@ -1,14 +1,13 @@
 #include "robot.h"
 #include <math.h>
 #include <Wire.h>
-#include "HMC5883L.h"
 #if ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
 #endif
 
-#define MAG_ADDR 0x0E
+#define MAG_ADDR 0x1E
 
 #define GYRO_ADDR 105
 // Gyro values
@@ -36,8 +35,6 @@ Robot::Robot(const float close_threshold, const float distance_between,
   sensor_distance(distance_between),
   base_speed(speed) {}
 
-HMC5883L compass;
-
 float Robot::getDistance(const int sensor) {
   int voltage = analogRead(sensor);
   float distance = this->distanceRegression(voltage);
@@ -45,7 +42,7 @@ float Robot::getDistance(const int sensor) {
 }
 
 float Robot::distanceRegression(float voltage) {
-  float distance = 384.379-9.60976*voltage;
+  float distance = -17.9294 * log(0.00212468 * voltage);
   return distance;
 }
 
@@ -167,14 +164,20 @@ void Robot::fan() {
 }
 
 void Robot::configMagnetometer() {
-  compass = HMC5883L();
+  // Set the samples averaged to 8, the rate to 15Hz,
+  // and normal measurement mode
+  Wire.beginTransmission(MAG_ADDR);
+  Wire.write(0x3C);
+  Wire.write(0x00);
+  Wire.write(0x70);
+  Wire.endTransmission();
 
-  int error;
-  error = compass.SetScale(1.3);
-  if(error != 0) Serial.println(compass.GetErrorText(error)); //check if there is an error, and print if so
-
-  error = compass.SetMeasurementMode(Measurement_Continuous); // Set the measurement mode to Continuous
-  if(error != 0) Serial.println(compass.GetErrorText(error)); //check if there is an error, and print if so
+  // Set the mode to continuous measurement
+  Wire.beginTransmission(MAG_ADDR);
+  Wire.write(0x3C);
+  Wire.write(0x02);
+  Wire.write(0x00);
+  Wire.endTransmission();
 }
 
 void Robot::setup() {
@@ -191,15 +194,38 @@ void Robot::setup() {
 }
 
 int Robot::heading() {
- //Get the reading from the HMC5883L and calculate the heading
- MagnetometerScaled scaled = compass.ReadScaledAxis(); //scaled values from compass.
- float heading = atan2(scaled.YAxis, scaled.XAxis);
+  int x, y, z;
 
- // Correct for when signs are reversed.
- if(heading < 0) heading += 2*PI;
- if(heading > 2*PI) heading -= 2*PI;
+  // Select the register to start reading data from
+  Wire.beginTransmission(MAG_ADDR);
+  Wire.write(0x03);
+  Wire.endTransmission();
 
- return heading * RAD_TO_DEG; //radians to degrees
+  // Read data from each axis.
+  // All registers must be read even though we only use x and y
+  Wire.requestFrom(MAG_ADDR, 6);
+  if (6 <= Wire.available()) {
+    // Combine the complement values to get the actual readings
+    x = Wire.read() << 8;
+    x |= Wire.read();
+    z = Wire.read() << 8;
+    z |= Wire.read();
+    y = Wire.read() << 8;
+    y |= Wire.read();
+  }
+
+  // Both x and y need to have their centers adjusted and x's range 
+  // is changed as well
+  x -= 580;
+  x *= 483/423;
+  y += 135.5;
+
+  float heading = atan2(x, y);
+
+  // Correct headings for negative values
+  if (heading < 0) heading += 2*PI;
+
+  return heading * 180/PI; 
 }
 
 int Robot::writeRegister(int deviceAddress, byte address, byte val) {
