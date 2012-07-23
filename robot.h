@@ -30,6 +30,7 @@ class Robot {
         void setup();
         float getDistance(const int sensor);
         int gyro();
+        int wallFollowDir();
     private:
         float calcAngle(float distance1, float distance2);
         float distanceRegression(float voltage);

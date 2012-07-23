@@ -68,7 +68,7 @@ elif platform == 'win32':
 else:
     # For Ubuntu Linux (9.10 or higher)
     ARDUINO_HOME_DEFAULT = '/usr/share/arduino/' #'/home/YOU/apps/arduino-00XX/'
-    ARDUINO_PORT_DEFAULT = getUsbTty('/dev/ttyUSB*')
+    ARDUINO_PORT_DEFAULT = getUsbTty('/dev/ttyACM*')
     AVR_BIN_PREFIX = 'avr-'
     SKETCHBOOK_HOME_DEFAULT = os.path.realpath('~/share/arduino/sketchbook/')
 

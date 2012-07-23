@@ -18,7 +18,7 @@
 #define CTRL_REG5 0x24
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
-const float center = 90;
+const float center = 67;
 
 const int flame1 = 7;
 const int fanpin = 25;
@@ -65,8 +65,20 @@ int Robot::open(const int direction) {
   }
 }
 
+int Robot::wallFollowDir() {
+  if (this->getDistance(left_front) < this->close &&
+    this->getDistance(left_back) < this->close) {
+    return left;
+  }
+  if (this->getDistance(right_front) < this->close &&
+    this->getDistance(right_back) < this->close) {
+    return right;
+  }
+}
+
 float Robot::calcAngle(float distance1, float distance2) {
   float theta = atan((distance1 - distance2) / this->sensor_distance);
+  theta *= -180/PI;
   return theta;
 }
 
@@ -80,7 +92,10 @@ float Robot::getAngle(const int direction) {
     distance1 = this->getDistance(right_front);
     distance2 = this->getDistance(right_back);
   }
-  return this->calcAngle(distance1, distance2);
+  float angle = this->calcAngle(distance1, distance2);
+  if (direction == right) angle *= -1;
+  Serial.println(angle);
+  return angle;
 } 
 
 float Robot::distance(const int direction) {
@@ -178,6 +193,7 @@ void Robot::configMagnetometer() {
 
 void Robot::setup() {
   Wire.begin();
+  Serial.begin(9600);
   Serial1.begin(9600);
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
@@ -210,11 +226,14 @@ int Robot::heading() {
     y |= Wire.read();
   }
 
+
   // Both x and y need to have their centers adjusted and x's range 
   // is changed as well
   x -= 580;
   x *= -483/423;
   y += 135.5;
+  z += 167;
+  z *= 1367/1174;
 
   float heading = atan2(x, y);
 
