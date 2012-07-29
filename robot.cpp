@@ -9,14 +9,6 @@
 
 #define MAG_ADDR 0x1E
 
-#define GYRO_ADDR 105
-// Gyro values
-#define CTRL_REG1 0x20
-#define CTRL_REG2 0x21
-#define CTRL_REG3 0x22
-#define CTRL_REG4 0x23
-#define CTRL_REG5 0x24
-
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const float center = 67;
 int gyrozero = 216;
@@ -125,20 +117,34 @@ float Robot::distance(const int direction) {
 void Robot::turn(const int direction) {
   double angle = 0;
   unsigned long int time = millis();
-  this->caster(90*direction);
-  delay(500);
-  if (direction == right) {
+  if (direction == uturn) {
+    this->caster(90);
+    delay(500);
     this->motor(80,48);
+    while(angle < 180) {
+      double width = 1000 / (millis() - time);
+      angle += (this->gyro() * gyrorate)/width; 
+      time = millis();
+      delay(5);
+      Serial.println(angle);
+    }
   }
-  else if (direction == left) {
-    this->motor(48,80);
-  }
-  while(angle < 80 && angle > -80) {
-    double width = 1000 / (millis() - time);
-    angle += (this->gyro() * gyrorate)/width; 
-    time = millis();
-    delay(5);
-    Serial.println(angle);
+  else {
+    if (direction == right) {
+      this->motor(80,48);
+    }
+    else if (direction == left) {
+      this->motor(48,80);
+    }
+    this->caster(90*direction);
+    delay(500);
+    while(angle < 80 && angle > -90) {
+      double width = 1000 / (millis() - time);
+      angle += (this->gyro() * gyrorate)/width; 
+      time = millis();
+      delay(5);
+      Serial.println(angle);
+    }
   }
   this->caster(0);
   this->stop();
