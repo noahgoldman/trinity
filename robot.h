@@ -37,7 +37,7 @@ class Robot {
         void configMagnetometer();
         int writeRegister(int deviceAddress, byte address, byte val);
         int readRegister(int deviceAddress, byte address);
-        void configGyro(int scale);
+        void configGyro();
 
         Servo caster_servo;
         Servo tower_servo;

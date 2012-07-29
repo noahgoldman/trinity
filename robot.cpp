@@ -19,9 +19,12 @@
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const float center = 67;
+int gyrozero = 216;
+const float gyrorate = 1.55;
 
 const int flame1 = 7;
 const int fanpin = 25;
+const int gyropin = A9, gyrozeropin = 13;
 const int left_back = A0, left_front = A1, right_back = A2, right_front = A3,
       distance_front = A4, distance_back = A5;
 const int caster_pin = 9, tower_pin = 11;
@@ -120,26 +123,26 @@ float Robot::distance(const int direction) {
 }
 
 void Robot::turn(const int direction) {
-  float initial_angle = this->heading();
-  if (direction == uturn) {
-    this->caster(500*direction);
-    this->motor(80, 48); // TODO add real numbers
-    while (this->heading() < initial_angle + 180*direction) {}
-    this->caster(center);
-    this->motor(80, 80);
+  double angle = 0;
+  unsigned long int time = millis();
+  this->caster(90*direction);
+  delay(500);
+  if (direction == right) {
+    this->motor(80,48);
   }
-  else {
-    this->caster(90*direction);
-    this->motor(80, 48); // TODO add real numbers
-    int heading = this->heading();
-    while (heading > initial_angle - 90*direction) {
-      heading = this->heading();
-      Serial.print("[magneto]");
-      Serial.println(heading);
-    }
-    this->caster(center);
-    this->motor(80, 80);
+  else if (direction == left) {
+    this->motor(48,80);
   }
+  while(angle < 80 && angle > -80) {
+    double width = 1000 / (millis() - time);
+    angle += (this->gyro() * gyrorate)/width; 
+    time = millis();
+    delay(5);
+    Serial.println(angle);
+  }
+  this->caster(0);
+  this->stop();
+  delay(1000);
 }
 
 void Robot::UV(const int direction) {
@@ -198,11 +201,11 @@ void Robot::setup() {
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
   pinMode(start, INPUT);
+  pinMode(gyrozeropin, OUTPUT);
 
   pinMode(fanpin, OUTPUT);
 
   this->configMagnetometer();    
-  this->configGyro(2000);
 }
 
 int Robot::heading() {
@@ -267,38 +270,16 @@ int Robot::readRegister(int deviceAddress, byte address) {
 }
 
 // Scale can be 250, 500, or 2000
-void Robot::configGyro(int scale) {
-  //From  Jim Lindblom of Sparkfun's code
-
-  // Enable x, y, z and turn off power down:
-  writeRegister(GYRO_ADDR, CTRL_REG1, 0b00001111);
-
-  // If you'd like to adjust/use the HPF, you can edit the line below to configure CTRL_REG2:
-  writeRegister(GYRO_ADDR, CTRL_REG2, 0b00000000);
-
-  // Configure CTRL_REG3 to generate data ready interrupt on INT2
-  // No interrupts used on INT1, if you'd like to configure INT1
-  // or INT2 otherwise, consult the datasheet:
-  writeRegister(GYRO_ADDR, CTRL_REG3, 0b00001000);
-
-  // CTRL_REG4 controls the full-scale range, among other things:
-
-  if(scale == 250){
-    writeRegister(GYRO_ADDR, CTRL_REG4, 0b00000000);
-  }else if(scale == 500){
-    writeRegister(GYRO_ADDR, CTRL_REG4, 0b00010000);
-  }else{
-    writeRegister(GYRO_ADDR, CTRL_REG4, 0b00110000);
+void Robot::configGyro() {
+  int avg = 0;
+  for (int i = 0; i < 100; i++) {
+    avg += analogRead(gyropin);
+    delay(10);
   }
-
-  // CTRL_REG5 controls high-pass filtering of outputs, use it
-  // if you'd like:
-  writeRegister(GYRO_ADDR, CTRL_REG5, 0b00000000);
+  gyrozero = avg / 100;
+  Serial.println(gyrozero);
 }
 
 int Robot::gyro() {
-  byte zMSB = readRegister(GYRO_ADDR, 0x2D);
-  byte zLSB = readRegister(GYRO_ADDR, 0x2C);
-  return ((zMSB << 8) | zLSB);
+  return (analogRead(gyropin) - gyrozero);
 }
-
