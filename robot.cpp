@@ -109,14 +109,23 @@ float Robot::distance(const int direction) {
   else if (direction == back) {
     return this->getDistance(back);
   }
-  float theta = this->calcAngle(distance1, distance2);
-  float pdist = ((distance1+distance2)*cos(theta))/2;
+  float theta = fabs(this->calcAngle(distance1, distance2));
+  float pdist = ((distance1+distance2)*cos(theta * DEG_TO_RAD))/2;
+  Serial.print("front: ");
+  Serial.print(distance1);
+  Serial.print(" back: ");
+  Serial.print(distance2);
+  Serial.print(" angle: ");
+  Serial.print(theta);
+  Serial.print(" calculated: ");
+  Serial.println(pdist);
   return pdist;
 }
 
 void Robot::turn(const int direction) {
   double angle = 0;
   unsigned long int time = millis();
+  this->stop();
   if (direction == uturn) {
     this->caster(90);
     delay(500);
@@ -130,15 +139,15 @@ void Robot::turn(const int direction) {
     }
   }
   else {
+    this->caster(90);
+    delay(500);
     if (direction == right) {
       this->motor(80,48);
     }
     else if (direction == left) {
       this->motor(48,80);
     }
-    this->caster(90*direction);
-    delay(500);
-    while(angle < 80 && angle > -90) {
+    while(angle < 90 && angle > -90) {
       double width = 1000 / (millis() - time);
       angle += (this->gyro() * gyrorate)/width; 
       time = millis();
