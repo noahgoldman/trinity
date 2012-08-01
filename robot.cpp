@@ -65,7 +65,7 @@ int Robot::wallFollowDir() {
     this->getDistance(left_back) < this->close) {
     return left;
   }
-  if (this->getDistance(right_front) < this->close &&
+  else if (this->getDistance(right_front) < this->close &&
     this->getDistance(right_back) < this->close) {
     return right;
   }
@@ -125,6 +125,10 @@ float Robot::distance(const int direction) {
 void Robot::turn(const int direction) {
   double angle = 0;
   unsigned long int time = millis();
+  float current_angle = 0;
+  if (this->wallFollowDir() == direction * -1) {
+    current_angle = this->getAngle(direction * -1);
+  }
   this->stop();
   if (direction == uturn) {
     this->caster(90);
@@ -147,7 +151,7 @@ void Robot::turn(const int direction) {
     else if (direction == left) {
       this->motor(48,80);
     }
-    while(angle < 90 && angle > -90) {
+    while(angle < (90 + current_angle) && angle > (-90 + current_angle)) {
       double width = 1000 / (millis() - time);
       angle += (this->gyro() * gyrorate)/width; 
       time = millis();
