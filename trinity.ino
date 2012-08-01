@@ -10,13 +10,13 @@ volatile int uv, line, room, initial_exit;
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
 const float center = 1500;
-const float ideal = 20;
-const float kPWall = 0;
-const float sensor_distance = 10;
+const float ideal = 13;
+const float kPWall = 2;
+const float sensor_distance = 17;
 const float close = 20;
 const int check_time = 1000;
 const int path_margin = 20;
-const int speed = 80;
+const int speed = 70;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -26,13 +26,10 @@ int room4[] = {right, left, uturn, left};
 int room5[] = {right, left, uturn, straight, left, left};
 int room6[] = {left, left, straight, uturn, left};
 
-int path[10];
+int path[7] = {left, uturn, left, uturn, straight, left, left};
 int step = 0;
 
 Robot robot(close, sensor_distance, speed);
-
-// Convert radians to degrees
-inline float radians_to_degrees(float radians) { return ((270 * radians) / PI);}
 
 // Calculates the wall following error. Multiplying by the direction (1 or -1) 
 //      should correctly adjust for wall following side
@@ -42,19 +39,11 @@ float getWfError(const int dir) {
 
 // Primary wall following function
 void wallFollow() {
-  int dir;
-  if (!robot.open(left)) {
-    dir = left;
-  }
-  else if (!robot.open(right)) {
-    dir = right; 
-  }
-  else {
-    robot.motor();
-  }
+  int dir = robot.wallFollowDir();
   float angle = robot.getAngle(dir);
   float error = getWfError(dir);
   robot.caster(angle + error);
+  robot.motor();
 }
 
 void enter(const int dir) {
@@ -109,8 +98,14 @@ void navigate() {
 
 // This is the interrupt handler for the line sensor
 ISR(ANALOG_COMP_vect) {
-  if (!initial_exit) {initial_exit = 1;}
-  else {room = !room;}
+  if (!initial_exit) {
+    robot.stop();
+    delay(1000);
+    initial_exit = 1;
+    exit();
+  }
+  // Disable the following line until the interrupts can be controlled
+  //else {room = !room;}
 }
 
 // This function will return the correct path to follow based on heading
@@ -148,11 +143,23 @@ void start() {
 // The robot should simply wall follow forward until it hits a wall
 //    then turn left
 void escape() {
-  if (!robot.open(front)) {
+  if (!robot.open(front) && robot.open(left)) {
     robot.turn(left);
+  }
+  if (!robot.open(front) && robot.open(right)) {
+    robot.turn(right);
   }
   wallFollow();
 }
+
+void exit() {
+  while (robot.open(front)) {
+    robot.motor();  
+  } 
+  robot.turn(path[step]);
+  step++;
+}
+  
 
 // This is the function that should be called upon entering the room
 // with the candle
