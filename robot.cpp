@@ -143,13 +143,13 @@ void Robot::turn(const int direction) {
     }
   }
   else {
-    this->caster(90);
+    this->caster(45 * direction);
     delay(500);
     if (direction == right) {
-      this->motor(80,48);
+      this->motor(80,64);
     }
     else if (direction == left) {
-      this->motor(48,80);
+      this->motor(64,80);
     }
     while(angle < (90 + current_angle) && angle > (-90 + current_angle)) {
       double width = 1000 / (millis() - time);
@@ -221,6 +221,7 @@ void Robot::setup() {
   this->tower_servo.attach(tower_pin);
   pinMode(start, INPUT);
   pinMode(gyrozeropin, OUTPUT);
+  pinMode(line, INPUT);
 
   pinMode(fanpin, OUTPUT);
 
