@@ -20,7 +20,7 @@ const int gyropin = A9, gyrozeropin = 13;
 const int left_back = A0, left_front = A1, right_back = A2, right_front = A3,
       distance_front = A4, distance_back = A5;
 const int caster_pin = 9, tower_pin = 11;
-const int uvtron = 3, line = 5, start = 29;
+const int uvtron = 3, line = 2, start = 29;
 
 
 // Assign the threshold to
@@ -44,15 +44,15 @@ float Robot::distanceRegression(float voltage) {
 int Robot::open(const int direction) {
   switch (direction) {
     case left:
-      return (this->getDistance(left_front) > this->close &&
-        this->getDistance(left_back) > this->close);
+      return ((this->getDistance(left_front) > this->close) &&
+        (this->getDistance(left_back) > this->close));
       break;
     case right:
-      return (this->getDistance(right_front) > this->close &&
-        this->getDistance(right_back) > this->close);
+      return ((this->getDistance(right_front) > this->close) &&
+        (this->getDistance(right_back) > this->close));
       break;
     case front:
-      return (this->getDistance(distance_front) > this->close);
+      return (this->getDistance(distance_front) > (this->close - 15));
       break;
     case back:
       return (this->getDistance(distance_back) > this->close);
@@ -68,6 +68,9 @@ int Robot::wallFollowDir() {
   else if (this->getDistance(right_front) < this->close &&
     this->getDistance(right_back) < this->close) {
     return right;
+  }
+  else {
+    return 0;
   }
 }
 
