@@ -22,6 +22,53 @@ ifndef V
    SILENT_OBJDUMP  = @echo '  [OBJDUMP]  ' $(OBJDUMP);
 endif
 
+# TARGET_FLAGS are to be passed while compiling, assembling, linking.
+TARGET_FLAGS :=
+# TARGET_LDFLAGS go to the linker
+TARGET_LDFLAGS :=
+
+# Configuration derived from $(MEMORY_TARGET)
+
+LD_SCRIPT_PATH := $(LDDIR)/$(MEMORY_TARGET).ld
+
+ifeq ($(MEMORY_TARGET), ram)
+VECT_BASE_ADDR := VECT_TAB_RAM
+endif
+ifeq ($(MEMORY_TARGET), flash)
+VECT_BASE_ADDR := VECT_TAB_FLASH
+endif
+ifeq ($(MEMORY_TARGET), jtag)
+VECT_BASE_ADDR := VECT_TAB_BASE
+endif
+
+# Pull in the board configuration file here, so it can override the
+# above.
+
+include $(BOARD_INCLUDE_DIR)/$(BOARD).mk
+
+# Configuration derived from $(BOARD).mk
+
+LD_SERIES_PATH := $(LDDIR)/stm32/series/$(MCU_SERIES)
+LD_MEM_PATH := $(LDDIR)/stm32/mem/$(LD_MEM_DIR)
+ifeq ($(MCU_SERIES), stm32f1)
+# Due to the Balkanization on F1, we need to specify the line when
+# making linker decisions.
+LD_SERIES_PATH := $(LD_SERIES_PATH)/$(MCU_F1_LINE)
+endif
+
+TARGET_LDFLAGS += -Xlinker -T$(LD_SCRIPT_PATH) \
+                  -L $(LD_SERIES_PATH) \
+                  -L $(LD_MEM_PATH) \
+                  -L $(LDDIR)
+TARGET_FLAGS += -DBOARD_$(BOARD) -DMCU_$(MCU) \
+                -DERROR_LED_PORT=$(ERROR_LED_PORT) \
+                -DERROR_LED_PIN=$(ERROR_LED_PIN) \
+                -D$(VECT_BASE_ADDR)
+
+LIBMAPLE_MODULE_SERIES := $(LIBMAPLE_PATH)/$(MCU_SERIES)
+
+BUILD_PATH= build
+SRCROOT := $(LIBMAPLE)
 BUILDDIRS :=
 TGT_BIN :=
 TARGET_FLAGS :=
@@ -36,4 +83,6 @@ LDFLAGS = $(TARGET_LDFLAGS) -mcpu=cortex-m3 -mthumb \
 		-Xlinker --gc-sections \
 		-Xassembler --march=armv7-m -Wall
 
-LIBMAPLE_MODULES += 
+LIBMAPLE_MODULES += $(SRCROOT)/libmaple
+LIBMAPLE_MODULES += $(SRCROOT)/libmaple/usb
+LIBMAPLE_MODULES += $(
