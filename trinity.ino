@@ -4,7 +4,7 @@
 #include "Arduino.h"
 
 // These two constants are true if either uv or line is detected
-volatile int uv, line, room, initial_exit = 0;
+volatile int uv = 0, line, room, initial_exit = 0;
 
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
@@ -62,7 +62,7 @@ void enter(const int dir) {
 
 // Turning and navigational logic works in the following manner (order is very 
 //    important):
-void check_turn() {
+void checkTurn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
   if (robot.open(front) && robot.open(left) && robot.open(right)) {
@@ -82,14 +82,14 @@ void check_turn() {
     robot.UV(left);
     delay(check_time);
     if (uv) {
-      enter(left);
+      //enter(left);
     }
   }
   else if (robot.open(right)) {
     robot.UV(right);
     delay(check_time);
     if (uv) {
-      enter(right);
+     // enter(right);
     }
   }
 }
@@ -98,7 +98,7 @@ void check_turn() {
 // The primary navigation function that should be used when navigating the maze.
 //      This should not be called while inside of a room
 void navigate() {
-  check_turn();
+  checkTurn();
   wallFollow();
 }
 
@@ -139,15 +139,6 @@ int *getPath() {
   }
 }
 
-// This function should be called directly at the beginning of execution
-//    it drives forward until it hits a wall, then turns left
-void start() {
-  while (robot.open(front)) {
-    robot.motor();
-  }
-  robot.turn(left);
-}
-
 // This is looped continuously you leave the initial room
 //
 // The robot should simply wall follow forward until it hits a wall
@@ -184,12 +175,14 @@ void extinguish() {
     robot.tower(tower_angle);
     int current_flame = robot.flame();
     if (current_flame > max) {
-      max = current_flame;
+      max = tower_angle;
     }
     tower_angle++;
+    delay(10);
   }
   
-  robot.tower(max);
+  robot.tower(max - 10);
+  delay(1000);
   robot.fan();
 }
 
@@ -205,6 +198,8 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  extinguish();
+  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -215,4 +210,5 @@ void loop() {
   else {
     navigate();
   }
+  */
 }

@@ -10,6 +10,7 @@
 #define MAG_ADDR 0x1E
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
+const int straight = front;
 const float center = 67;
 int gyrozero = 216;
 const float gyrorate = 1.55;
@@ -133,9 +134,15 @@ void Robot::turn(const int direction) {
     current_angle = this->getAngle(direction * -1);
   }
   this->stop();
+  if (direction == straight) {
+    delay(2000);
+    while(!this->wallFollowDir()) {
+      this->caster(0);
+      this->motor();
+    }
+  }
   if (direction == uturn) {
     this->caster(90);
-    delay(500);
     this->motor(80,48);
     while(angle < 180) {
       double width = 1000 / (millis() - time);
