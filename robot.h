@@ -1,13 +1,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H 
 
-#include <Servo.h>
-
-#if ARDUINO >= 100
-  #include "Arduino.h"
-#else
-  #include "WProgram.h"
-#endif
+#include "Servo.h"
 
 class Robot {
     public:

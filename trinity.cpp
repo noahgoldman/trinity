@@ -1,7 +1,8 @@
-#include <Servo.h>
+#include <stdio.h>
+#include <wirish/wirish.h>
 #include "robot.h"
-#include <Wire.h>
-#include "Arduino.h"
+#include "Servo.h"
+#include "Wire.h"
 
 // These two constants are true if either uv or line is detected
 volatile int uv = 0, line, room, initial_exit = 0;
@@ -9,7 +10,6 @@ volatile int uv = 0, line, room, initial_exit = 0;
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
-const float center = 1500;
 const float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
@@ -107,6 +107,15 @@ void ir() {
   line = 1;
 }
 
+void exit() {
+  while (robot.open(front)) {
+    robot.caster(0);
+    robot.motor();  
+  } 
+  robot.turn(path[step]);
+  step++;
+}
+
 void interpret_ir() {
   if (line && !initial_exit) {
     exit();
@@ -137,6 +146,7 @@ int *getPath() {
   else if ((360 - path_margin) < heading || heading > (path_margin)) {
     return room4;
   }
+  return 0;
 }
 
 // This is looped continuously you leave the initial room
@@ -153,14 +163,6 @@ void escape() {
   wallFollow();
 }
 
-void exit() {
-  while (robot.open(front)) {
-    robot.caster(0);
-    robot.motor();  
-  } 
-  robot.turn(path[step]);
-  step++;
-}
   
 
 // This is the function that should be called upon entering the room
@@ -168,7 +170,6 @@ void exit() {
 //
 // Do a sweep for the max flame value then fire the fans
 void extinguish() {
-  int candle_angle;
   int tower_angle = 1;
   int max = 0;
   while (tower_angle <= 90) {
@@ -198,7 +199,8 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  extinguish();
+  Serial1.println(robot.heading());
+  delay(10);
   /*
   interpret_ir();
   if (!initial_exit) {
@@ -211,4 +213,20 @@ void loop() {
     navigate();
   }
   */
+}
+
+// This should do some kind of Wiring init thing that stops stuff from being bad
+__attribute__((constructor)) void premain() {
+  init();
+}
+
+// We now need to define a main function with the maple
+int main(void) {
+  setup();
+
+  while (true) {
+    loop();
+  }
+
+  return 0;
 }
