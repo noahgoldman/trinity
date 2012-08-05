@@ -1,11 +1,6 @@
 #include "robot.h"
 #include <math.h>
-#include <Wire.h>
-#if ARDUINO >= 100
-  #include "Arduino.h"
-#else
-  #include "WProgram.h"
-#endif
+#include <Wire/Wire.h>
 
 #define MAG_ADDR 0x1E
 
@@ -17,9 +12,9 @@ const float gyrorate = 1.55;
 
 const int flame1 = 7;
 const int fanpin = 25;
-const int gyropin = A9, gyrozeropin = 13;
-const int left_back = A0, left_front = A1, right_back = A2, right_front = A3,
-      distance_front = A4, distance_back = A5;
+const int gyropin = 9, gyrozeropin = 13;
+const int left_back = 0, left_front = 1, right_back = 2, right_front = 3,
+      distance_front = 4, distance_back = 5;
 const int caster_pin = 9, tower_pin = 11;
 const int uvtron = 3, line = 2, start = 29;
 
@@ -93,7 +88,7 @@ float Robot::getAngle(const int direction) {
   }
   float angle = this->calcAngle(distance1, distance2);
   if (direction == right) angle *= -1;
-  Serial.println(angle);
+  SerialUSB.println(angle);
   return angle;
 } 
 
@@ -115,14 +110,14 @@ float Robot::distance(const int direction) {
   }
   float theta = fabs(this->calcAngle(distance1, distance2));
   float pdist = ((distance1+distance2)*cos(theta * DEG_TO_RAD))/2;
-  Serial.print("front: ");
-  Serial.print(distance1);
-  Serial.print(" back: ");
-  Serial.print(distance2);
-  Serial.print(" angle: ");
-  Serial.print(theta);
-  Serial.print(" calculated: ");
-  Serial.println(pdist);
+  SerialUSB.print("front: ");
+  SerialUSB.print(distance1);
+  SerialUSB.print(" back: ");
+  SerialUSB.print(distance2);
+  SerialUSB.print(" angle: ");
+  SerialUSB.print(theta);
+  SerialUSB.print(" calculated: ");
+  SerialUSB.println(pdist);
   return pdist;
 }
 
@@ -149,7 +144,7 @@ void Robot::turn(const int direction) {
       angle += (this->gyro() * gyrorate)/width; 
       time = millis();
       delay(5);
-      Serial.println(angle);
+      SerialUSB.println(angle);
     }
   }
   else {
@@ -166,7 +161,7 @@ void Robot::turn(const int direction) {
       angle += (this->gyro() * gyrorate)/width; 
       time = millis();
       delay(5);
-      Serial.println(angle);
+      SerialUSB.println(angle);
     }
   }
   this->caster(0);
@@ -193,11 +188,11 @@ void Robot::motor() {
 
 void Robot::motor(int left, int right) {
   if (left == 64 && right == 64) {
-    Serial1.write(byte(0));
+    SerialUSB.write(byte(0));
   }
   else {
-    Serial1.write(byte(left));
-    Serial1.write(byte(127 + right));
+    SerialUSB.write(byte(left));
+    SerialUSB.write(byte(127 + right));
   }
 }
 
@@ -217,15 +212,14 @@ void Robot::fan() {
 
 void Robot::configMagnetometer() {
   // Set the mode to continuous measurement
-  Wire.beginTransmission(MAG_ADDR);
-  Wire.write(0x02);
-  Wire.write(0x00);
-  Wire.endTransmission();
+  Wire().beginTransmission(MAG_ADDR);
+  Wire().send(0x02);
+  Wire().send(0x00);
+  Wire().endTransmission();
 }
 
 void Robot::setup() {
-  Wire.begin();
-  Serial.begin(9600);
+  Wire().begin();
   Serial1.begin(9600);
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
@@ -242,21 +236,21 @@ int Robot::heading() {
   int x, y, z;
 
   // Select the register to start reading data from
-  Wire.beginTransmission(MAG_ADDR);
-  Wire.write(0x03);
-  Wire.endTransmission();
+  Wire().beginTransmission(MAG_ADDR);
+  Wire().send(0x03);
+  Wire().endTransmission();
 
   // Read data from each axis.
   // All registers must be read even though we only use x and y
-  Wire.requestFrom(MAG_ADDR, 6);
-  if (6 <= Wire.available()) {
+  Wire().requestFrom(MAG_ADDR, 6);
+  if (6 <= Wire().available()) {
     // Combine the complement values to get the actual readings
-    x = Wire.read() << 8;
-    x |= Wire.read();
-    z = Wire.read() << 8;
-    z |= Wire.read();
-    y = Wire.read() << 8;
-    y |= Wire.read();
+    x = Wire().receive() << 8;
+    x |= Wire().receive();
+    z = Wire().receive() << 8;
+    z |= Wire().receive();
+    y = Wire().receive() << 8;
+    y |= Wire().receive();
   }
 
 
@@ -274,40 +268,6 @@ int Robot::heading() {
   if (heading < 0) heading += 2*PI;
 
   return heading * 180/PI; 
-}
-
-int Robot::writeRegister(int deviceAddress, byte address, byte val) {
-  Wire.beginTransmission(deviceAddress); // start transmission to device 
-  Wire.write(address);       // send register address
-  Wire.write(val);         // send value to write
-  Wire.endTransmission();     // end transmission
-}
-
-int Robot::readRegister(int deviceAddress, byte address) {
-    int v;
-    Wire.beginTransmission(deviceAddress);
-    Wire.write(address); // register to read
-    Wire.endTransmission();
-
-    Wire.requestFrom(deviceAddress, 1); // read a byte
-
-    while(!Wire.available()) {
-        // waiting
-    }
-
-    v = Wire.read();
-    return v;
-}
-
-// Scale can be 250, 500, or 2000
-void Robot::configGyro() {
-  int avg = 0;
-  for (int i = 0; i < 100; i++) {
-    avg += analogRead(gyropin);
-    delay(10);
-  }
-  gyrozero = avg / 100;
-  Serial.println(gyrozero);
 }
 
 int Robot::gyro() {

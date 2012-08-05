@@ -1,7 +1,7 @@
 #ifndef ROBOT_H
 #define ROBOT_H 
 
-#include "Servo.h"
+#include <Servo/Servo.h>
 
 class Robot {
     public:

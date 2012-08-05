@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <wirish/wirish.h>
 #include "robot.h"
-#include "Servo.h"
-#include "Wire.h"
+#include <Servo/Servo.h>
+#include <Wire/Wire.h>
 
 // These two constants are true if either uv or line is detected
 volatile int uv = 0, line, room, initial_exit = 0;
@@ -199,9 +199,6 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  Serial1.println(robot.heading());
-  delay(10);
-  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -212,7 +209,6 @@ void loop() {
   else {
     navigate();
   }
-  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad
