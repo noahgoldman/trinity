@@ -39,21 +39,22 @@ float Robot::distanceRegression(float voltage) {
 
 int Robot::open(const int direction) {
   switch (direction) {
-    case left:
-      return ((this->getDistance(left_front) > this->close) &&
-        (this->getDistance(left_back) > this->close));
-      break;
-    case right:
-      return ((this->getDistance(right_front) > this->close) &&
-        (this->getDistance(right_back) > this->close));
-      break;
-    case front:
-      return (this->getDistance(distance_front) > (this->close - 15));
-      break;
-    case back:
-      return (this->getDistance(distance_back) > this->close);
-      break;
+  case left:
+    return ((this->getDistance(left_front) > this->close) &&
+      (this->getDistance(left_back) > this->close));
+    break;
+  case right:
+    return ((this->getDistance(right_front) > this->close) &&
+      (this->getDistance(right_back) > this->close));
+    break;
+  case front:
+    return (this->getDistance(distance_front) > (this->close - 15));
+    break;
+  case back:
+    return (this->getDistance(distance_back) > this->close);
+    break;
   }
+  return 0;
 }
 
 int Robot::wallFollowDir() {
@@ -77,7 +78,7 @@ float Robot::calcAngle(float distance1, float distance2) {
 }
 
 float Robot::getAngle(const int direction) {
-  float distance1, distance2;
+  float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
     distance2 = this->getDistance(left_back);
@@ -93,7 +94,7 @@ float Robot::getAngle(const int direction) {
 } 
 
 float Robot::distance(const int direction) {
-  float distance1, distance2;
+  float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
     distance2 = this->getDistance(left_back);
@@ -140,13 +141,13 @@ void Robot::turn(const int direction) {
     this->caster(90);
     this->motor(80,48);
     while(angle < 180) {
-      double width = 1000 / (millis() - time);
-      angle += (this->gyro() * gyrorate)/width; 
-      time = millis();
-      delay(5);
-      SerialUSB.println(angle);
+        double width = 1000 / (millis() - time);
+        angle += (this->gyro() * gyrorate)/width; 
+        time = millis();
+        delay(5);
+        SerialUSB.println(angle);
+      }
     }
-  }
   else {
     this->caster(45 * direction);
     delay(500);
@@ -212,14 +213,14 @@ void Robot::fan() {
 
 void Robot::configMagnetometer() {
   // Set the mode to continuous measurement
-  Wire().beginTransmission(MAG_ADDR);
-  Wire().send(0x02);
-  Wire().send(0x00);
-  Wire().endTransmission();
+  Wire.beginTransmission(MAG_ADDR);
+  Wire.send(0x02);
+  Wire.send(0x00);
+  Wire.endTransmission();
 }
 
 void Robot::setup() {
-  Wire().begin();
+  Wire.begin();
   Serial1.begin(9600);
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
@@ -233,24 +234,24 @@ void Robot::setup() {
 }
 
 int Robot::heading() {
-  int x, y, z;
+  int x= 0, y = 0, z = 0;
 
   // Select the register to start reading data from
-  Wire().beginTransmission(MAG_ADDR);
-  Wire().send(0x03);
-  Wire().endTransmission();
+  Wire.beginTransmission(MAG_ADDR);
+  Wire.send(0x03);
+  Wire.endTransmission();
 
   // Read data from each axis.
   // All registers must be read even though we only use x and y
-  Wire().requestFrom(MAG_ADDR, 6);
-  if (6 <= Wire().available()) {
+  Wire.requestFrom(MAG_ADDR, 6);
+  if (6 <= Wire.available()) {
     // Combine the complement values to get the actual readings
-    x = Wire().receive() << 8;
-    x |= Wire().receive();
-    z = Wire().receive() << 8;
-    z |= Wire().receive();
-    y = Wire().receive() << 8;
-    y |= Wire().receive();
+    x = Wire.receive() << 8;
+    x |= Wire.receive();
+    z = Wire.receive() << 8;
+    z |= Wire.receive();
+    y = Wire.receive() << 8;
+    y |= Wire.receive();
   }
 
 

@@ -1,16 +1,18 @@
 ## Code for Trinity robot 2012-2013
 
-# Scons
+# Maple
 
-Scons can be used on linux to compile and upload the code while avoiding the ide
+Follow the instructions on configuring for linux in order to get everything
+working.  On arch you have to create the plugdev group and add yourself to it, 
+as it doesn't normally exist. Don't forget to logout after this is done.
 
- - Either make a virtualenv or make sure python2 is installed
- - install pyserial
- - install scons
+In order for our code to work there is a small change that I decided to make to 
+the Wire library.  Apply wire.patch in the libraries/ directory with 
+"patch -p0 -i wire.patch"
 
-To use, type "scons" to compile, and "scons upload" to upload
+# Compiling
 
-When getting the error "error: attempt to use poisoned 'SIG_USART0_RECV'":
+Set the environment var LIB_MAPLE_HOME to the path of libmaple, then run:
 
- - Add "#define __AVR_LIBC_DEPRECATED_ENABLE__ 1" to
-    /usr/share/arduino/hardware/arduino/cores/arduino/Arduino.h
+make
+make install

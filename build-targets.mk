@@ -1,15 +1,15 @@
 # main project target
 
-USER_INCLUDES := -I$(SRCROOT)/libraries -I/
+USER_INCLUDES := -I$(SRCROOT)/libraries 
 
-OBJECTS := build/trinity.o build/robot.o
+OBJECTS := build/robot.o
 
 TGT_BIN += $(OBJECTS)
 
-$(BUILD_PATH)/robot.o: robot.cpp robot.h
+$(BUILD_PATH)/robot.o: robot.cpp 
 	$(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
 
-$(BUILD_PATH)/trinity.o: trinity.cpp robot.h
+$(BUILD_PATH)/trinity.o: trinity.cpp
 	$(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
 
 $(BUILD_PATH)/libmaple.a: $(BUILDDIRS) $(TGT_BIN)

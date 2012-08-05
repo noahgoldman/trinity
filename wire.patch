@@ -1,0 +1,20 @@
+diff -u Wire/Wire.cpp Wire/Wire.cpp
+--- Wire/Wire.cpp	2012-08-05 00:34:30.777544384 -0400
++++ Wire/Wire.cpp	2012-08-05 00:40:20.989398819 -0400
+@@ -179,4 +179,4 @@
+ }
+ 
+ // Declare the instance that the users of the library can use
+-TwoWire Wire();
++TwoWire Wire;
+diff -u Wire/Wire.h Wire/Wire.h
+--- Wire/Wire.h	2012-08-05 00:34:24.157698197 -0400
++++ Wire/Wire.h	2012-08-05 00:40:32.469131568 -0400
+@@ -131,6 +131,6 @@
+     ~TwoWire();
+ };
+ 
+-extern TwoWire Wire();
++extern TwoWire Wire;
+ 
+ #endif // _WIRE_H_
