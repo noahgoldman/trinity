@@ -1,6 +1,7 @@
 #include "robot.h"
 #include <math.h>
 #include <Wire/Wire.h>
+#include <libmaple/i2c.h>
 
 #define MAG_ADDR 0x1E
 
@@ -17,7 +18,6 @@ const int left_back = 0, left_front = 1, right_back = 2, right_front = 3,
       distance_front = 4, distance_back = 5;
 const int caster_pin = 9, tower_pin = 11;
 const int uvtron = 3, line = 2, start = 29;
-
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
@@ -213,10 +213,21 @@ void Robot::fan() {
 
 void Robot::configMagnetometer() {
   // Set the mode to continuous measurement
-  Wire.beginTransmission(MAG_ADDR);
-  Wire.send(0x02);
-  Wire.send(0x00);
-  Wire.endTransmission();
+  i2c_msg continuous_measurement;
+  uint8 measurement_msg[2];
+
+  measurement_msg[0] = 0x02;
+  measurement_msg[1] = 0x00;
+
+  continuous_measurement.addr = MAG_ADDR;
+  continuous_measurement.flags = 0;
+  continuous_measurement.data = measurement_msg;
+  continuous_measurement.length = sizeof(measurement_msg);
+  continuous_measurement.xferred = 0;
+
+  i2c_master_enable(I2C1, 0);
+
+  i2c_master_xfer(I2C1, &continuous_measurement, 1, 0);
 }
 
 void Robot::setup() {
@@ -234,26 +245,34 @@ void Robot::setup() {
 }
 
 int Robot::heading() {
-  int x= 0, y = 0, z = 0;
+  int x = 0, y = 0, z = 0;
 
-  // Select the register to start reading data from
-  Wire.beginTransmission(MAG_ADDR);
-  Wire.send(0x03);
-  Wire.endTransmission();
+  i2c_msg read_device[2];
 
+  uint8 start_register = 0x03;
+  uint8 read_msg_data[6];
+
+  read_device[0].addr = MAG_ADDR;
+  read_device[0].flags = 0;
+  read_device[0].data = &start_register;
+  read_device[0].length = sizeof(start_register);
+  read_device[0].xferred = 0;
+
+  read_device[1].addr = MAG_ADDR;
+  read_device[1].flags = I2C_MSG_READ;
+  read_device[1].data = read_msg_data;
+  read_device[1].length = sizeof(read_msg_data);
+  read_device[1].xferred = 0;
+
+  i2c_master_xfer(I2C1, read_device, 2, 2);
   // Read data from each axis.
   // All registers must be read even though we only use x and y
-  Wire.requestFrom(MAG_ADDR, 6);
-  if (6 <= Wire.available()) {
-    // Combine the complement values to get the actual readings
-    x = Wire.receive() << 8;
-    x |= Wire.receive();
-    z = Wire.receive() << 8;
-    z |= Wire.receive();
-    y = Wire.receive() << 8;
-    y |= Wire.receive();
-  }
-
+  x = read_msg_data[0] << 8;
+  x |= read_msg_data[1];
+  z = read_msg_data[2];
+  z |= read_msg_data[3];
+  y = read_msg_data[4];
+  y |= read_msg_data[5];
 
   // Both x and y need to have their centers adjusted and x's range 
   // is changed as well

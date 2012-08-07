@@ -35,6 +35,13 @@ MEMORY_TARGET ?= flash
 include $(MAKEDIR)/target-config.mk
 
 ##
+## Build rules and useful templates
+##
+
+include $(MAKEDIR)/build-rules.mk
+include $(MAKEDIR)/build-templates.mk
+
+##
 ## Compilation flags
 ##
 
@@ -51,17 +58,10 @@ GLOBAL_CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 GLOBAL_CXXFLAGS := -fno-rtti -fno-exceptions -Wall $(TARGET_FLAGS)
 GLOBAL_ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
 		   -x assembler-with-cpp $(TARGET_FLAGS)
-LDFLAGS  = $(TARGET_LDFLAGS) -mcpu=cortex-m3 -mthumb \
+LDFLAGS  = $(TARGET_LDFLAGS) $(TOOLCHAIN_LDFLAGS) -mcpu=cortex-m3 -mthumb \
            -Xlinker --gc-sections \
            -Xassembler --march=armv7-m -Wall
 #          -Xlinker --print-gc-sections \
-
-##
-## Build rules and useful templates
-##
-
-include $(MAKEDIR)/build-rules.mk
-include $(MAKEDIR)/build-templates.mk
 
 ##
 ## Set all submodules here
@@ -89,58 +89,8 @@ $(foreach m,$(LIBMAPLE_MODULES),$(eval $(call LIBMAPLE_MODULE_template,$(m))))
 ## Targets
 ##
 
-# main project target
-
-USER_INCLUDES := -I$(SRCROOT)/libraries 
-
-OBJECTS := build/robot.o
-
-TGT_BIN += $(OBJECTS)
-
-$(BUILD_PATH)/robot.o: robot.cpp 
-	$(SILENT_CXX) $(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
-
-$(BUILD_PATH)/trinity.o: trinity.cpp
-	$(SILENT_CXX) $(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
-
-$(BUILD_PATH)/libmaple.a: $(BUILDDIRS) $(TGT_BIN)
-	- rm -f $@
-	$(AR) crv $(BUILD_PATH)/libmaple.a $(TGT_BIN)
-
-library: $(BUILD_PATH)/libmaple.a
-
-.PHONY: library
-
-$(BUILD_PATH)/$(BOARD).elf: $(BUILDDIRS) $(TGT_BIN) $(BUILD_PATH)/trinity.o
-	$(SILENT_CXX) $(CXX) $(LDFLAGS) -o $@ $(TGT_BIN) $(BUILD_PATH)/trinity.o -Wl,-Map,$(BUILD_PATH)/$(BOARD).map
-
-$(BUILD_PATH)/$(BOARD).bin: $(BUILD_PATH)/$(BOARD).elf
-	$(SILENT_OBJCOPY) $(OBJCOPY) -v -Obinary $(BUILD_PATH)/$(BOARD).elf $@ 1>/dev/null
-	$(SILENT_DISAS) $(DISAS) -d $(BUILD_PATH)/$(BOARD).elf > $(BUILD_PATH)/$(BOARD).disas
-	@echo " "
-	@echo "Object file sizes:"
-	@find $(BUILD_PATH) -iname *.o | xargs $(SIZE) -t > $(BUILD_PATH)/$(BOARD).sizes
-	@cat $(BUILD_PATH)/$(BOARD).sizes
-	@echo " "
-	@echo "Final Size:"
-	@$(SIZE) $<
-	@echo $(MEMORY_TARGET) > $(BUILD_PATH)/build-type
-
-$(BUILDDIRS):
-	@mkdir -p $@
-
-MSG_INFO:
-	@echo "================================================================================"
-	@echo ""
-	@echo "  Build info:"
-	@echo "     BOARD:          " $(BOARD)
-	@echo "     MCU:            " $(MCU)
-	@echo "     MEMORY_TARGET:  " $(MEMORY_TARGET)
-	@echo ""
-	@echo "  See 'make help' for all possible targets"
-	@echo ""
-	@echo "================================================================================"
-	@echo ""
+# main target
+include build-targets.mk
 
 .PHONY: install sketch clean help cscope tags ctags ram flash jtag doxygen mrproper list-boards
 
