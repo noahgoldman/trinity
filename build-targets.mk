@@ -7,10 +7,10 @@ OBJECTS := build/robot.o
 TGT_BIN += $(OBJECTS)
 
 $(BUILD_PATH)/robot.o: robot.cpp 
-	$(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
+	$(SILENT_CXX) $(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
 
 $(BUILD_PATH)/trinity.o: trinity.cpp
-	$(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
+	$(SILENT_CXX) $(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
 
 $(BUILD_PATH)/libmaple.a: $(BUILDDIRS) $(TGT_BIN)
 	- rm -f $@
@@ -21,7 +21,7 @@ library: $(BUILD_PATH)/libmaple.a
 .PHONY: library
 
 $(BUILD_PATH)/$(BOARD).elf: $(BUILDDIRS) $(TGT_BIN) $(BUILD_PATH)/trinity.o
-	$(CXX) $(LDFLAGS) -o $@ $(TGT_BIN) $(BUILD_PATH)/trinity.o -Wl,-Map,$(BUILD_PATH)/$(BOARD).map
+	$(SILENT_CXX) $(CXX) $(LDFLAGS) -o $@ $(TGT_BIN) $(BUILD_PATH)/trinity.o -Wl,-Map,$(BUILD_PATH)/$(BOARD).map
 
 $(BUILD_PATH)/$(BOARD).bin: $(BUILD_PATH)/$(BOARD).elf
 	$(SILENT_OBJCOPY) $(OBJCOPY) -v -Obinary $(BUILD_PATH)/$(BOARD).elf $@ 1>/dev/null

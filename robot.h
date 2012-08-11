@@ -22,12 +22,13 @@ class Robot {
         void drive(int time);
         int flame();
         void setup();
+        void pinSetup();
         float getDistance(const int sensor);
-        int gyro();
+        float gyro();
         int wallFollowDir();
     private:
         float calcAngle(float distance1, float distance2);
-        float distanceRegression(float voltage);
+        float distanceRegression(float voltage, int old);
         void configMagnetometer();
         int writeRegister(int deviceAddress, byte address, byte val);
         int readRegister(int deviceAddress, byte address);

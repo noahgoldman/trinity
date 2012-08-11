@@ -4,20 +4,22 @@
 #include <libmaple/i2c.h>
 
 #define MAG_ADDR 0x1E
+#define EMATH 2.718281828459045235360287
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
 const float center = 67;
-int gyrozero = 216;
-const float gyrorate = 1.55;
+int gyrozero = 1324.9;
+const float gyrorate = 4.25;
 
-const int flame1 = 7;
-const int fanpin = 25;
-const int gyropin = 9, gyrozeropin = 13;
-const int left_back = 0, left_front = 1, right_back = 2, right_front = 3,
-      distance_front = 4, distance_back = 5;
-const int caster_pin = 9, tower_pin = 11;
-const int uvtron = 3, line = 2, start = 29;
+// Pins
+const int flamepin = 20;
+const int relay = 35;
+const int gyropin = 12;
+const int left_back = 17, left_front = 16, right_back = 19, right_front = 18,
+      distance_front = 15, distance_back = 10;
+const int caster_pin = 27, tower_pin = 28;
+const int uvtron = 37, line = 36; 
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
@@ -28,12 +30,24 @@ Robot::Robot(const float close_threshold, const float distance_between,
 
 float Robot::getDistance(const int sensor) {
   int voltage = analogRead(sensor);
-  float distance = this->distanceRegression(voltage);
+  float distance;
+  if (sensor == distance_front || sensor == distance_back) {
+    distance = this->distanceRegression(voltage, 1);
+  }
+  else {
+    distance = this->distanceRegression(voltage, 0);
+  }
   return distance;
 }
 
-float Robot::distanceRegression(float voltage) {
-  float distance = -17.9294 * log(0.00212468 * voltage);
+float Robot::distanceRegression(float voltage, int old) {
+  float distance;
+  if (old) {
+    distance = 66.2801 * pow(EMATH, (-0.000636283 * voltage));
+  }
+  else {
+    distance = 52.6639 * pow(EMATH, (-0.00106323 * voltage));
+  }
   return distance;
 }
 
@@ -142,7 +156,7 @@ void Robot::turn(const int direction) {
     this->motor(80,48);
     while(angle < 180) {
         double width = 1000 / (millis() - time);
-        angle += (this->gyro() * gyrorate)/width; 
+        angle += (this->gyro() / gyrorate)/width; 
         time = millis();
         delay(5);
         SerialUSB.println(angle);
@@ -159,7 +173,7 @@ void Robot::turn(const int direction) {
     }
     while(angle < (90 + current_angle) && angle > (-90 + current_angle)) {
       double width = 1000 / (millis() - time);
-      angle += (this->gyro() * gyrorate)/width; 
+      angle += (this->gyro() / gyrorate)/width; 
       time = millis();
       delay(5);
       SerialUSB.println(angle);
@@ -189,16 +203,16 @@ void Robot::motor() {
 
 void Robot::motor(int left, int right) {
   if (left == 64 && right == 64) {
-    SerialUSB.write(byte(0));
+    Serial1.write(byte(0));
   }
   else {
-    SerialUSB.write(byte(left));
-    SerialUSB.write(byte(127 + right));
+    Serial1.write(byte(left));
+    Serial1.write(byte(127 + right));
   }
 }
 
 int Robot::flame() {
-  return analogRead(flame1);
+  return analogRead(flamepin);
 }
 
 void Robot::stop() {
@@ -206,9 +220,41 @@ void Robot::stop() {
 }
 
 void Robot::fan() {
-  digitalWrite(fanpin, HIGH);
+  digitalWrite(relay, HIGH);
   delay(1750);
-  digitalWrite(fanpin, LOW);
+  digitalWrite(relay, LOW);
+}
+
+void Robot::pinSetup() {
+  // Digital Inputs
+  pinMode(uvtron, INPUT);
+  pinMode(line, INPUT);
+
+  // Digital Outputs
+  pinMode(relay, OUTPUT);
+  pinMode(caster_pin, PWM);
+  pinMode(tower_pin, PWM);
+  pinMode(BOARD_LED_PIN, OUTPUT);
+
+  // Analog Inputs
+  pinMode(distance_front, INPUT_ANALOG);
+  pinMode(left_front, INPUT_ANALOG);
+  pinMode(left_back, INPUT_ANALOG);
+  pinMode(right_front, INPUT_ANALOG);
+  pinMode(right_back, INPUT_ANALOG);
+  pinMode(distance_back, INPUT_ANALOG);
+  pinMode(flamepin, INPUT_ANALOG);
+  pinMode(gyropin, INPUT_ANALOG);
+}
+
+void Robot::setup() {
+  Serial1.begin(9600);
+  this->caster_servo.attach(caster_pin);
+  this->tower_servo.attach(tower_pin);
+
+  this->pinSetup();
+
+  //this->configMagnetometer();    
 }
 
 void Robot::configMagnetometer() {
@@ -228,20 +274,6 @@ void Robot::configMagnetometer() {
   i2c_master_enable(I2C1, 0);
 
   i2c_master_xfer(I2C1, &continuous_measurement, 1, 0);
-}
-
-void Robot::setup() {
-  Wire.begin();
-  Serial1.begin(9600);
-  this->caster_servo.attach(caster_pin);
-  this->tower_servo.attach(tower_pin);
-  pinMode(start, INPUT);
-  pinMode(gyrozeropin, OUTPUT);
-  pinMode(line, INPUT);
-
-  pinMode(fanpin, OUTPUT);
-
-  this->configMagnetometer();    
 }
 
 int Robot::heading() {
@@ -290,6 +322,6 @@ int Robot::heading() {
   return heading * 180/PI; 
 }
 
-int Robot::gyro() {
+float Robot::gyro() {
   return (analogRead(gyropin) - gyrozero);
 }

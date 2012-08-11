@@ -16,7 +16,7 @@ const float sensor_distance = 17;
 const float close = 35;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 70;
+const int speed = 85;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -65,7 +65,7 @@ void enter(const int dir) {
 void checkTurn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (robot.open(front) && robot.open(left) && robot.open(right)) {
+  if (robot.open(front) && robot.open(right) && robot.wallFollowDir() != left) {
     // Turn according to the path
     robot.turn(path[step]); 
     step++;
@@ -121,9 +121,11 @@ void interpret_ir() {
     exit();
     initial_exit = 1;
   }
+  /*
   else if (line && !room) {
     room = 1;
   }
+  */
   line = 0;
 }
 
@@ -188,8 +190,8 @@ void extinguish() {
 }
 
 void setup() {
-  attachInterrupt(0, ir, RISING);
   robot.setup();
+  attachInterrupt(36, ir, RISING);
 }
 
 // The main event loop for the robot should function in the following manner.
@@ -199,6 +201,17 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  /*
+  int trials = 1000000;
+  unsigned long int count = 0;
+  for (int i = 0; i < trials; i++) {
+    count += robot.gyro();
+  }
+
+  int avg = count / trials;
+  SerialUSB.println(avg);
+  */
+
   interpret_ir();
   if (!initial_exit) {
     escape();
