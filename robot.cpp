@@ -55,27 +55,17 @@ float Robot::distanceRegression(float voltage, int old) {
 }
 
 int Robot::open(const int direction) {
-  int side_open;
   switch (direction) {
   case left:
-    side_open = ((this->getDistance(left_front) > this->close) &&
+     return ((this->getDistance(left_front) > this->close) &&
       (this->getDistance(left_back) > this->close));
-    if (side_open) {this->led(left, HIGH);}
-    else {this->led(right, LOW);}
-    return side_open;
     break;
   case right:
-    side_open = ((this->getDistance(right_front) > this->close) &&
+    return ((this->getDistance(right_front) > this->close) &&
       (this->getDistance(right_back) > this->close));
-    if (side_open) {this->led(right, HIGH);}
-    else {this->led(right, LOW);}
-    return side_open;
     break;
   case front:
-    side_open = (this->getDistance(distance_front) > (this->close - 10));
-    if (side_open) {this->led(front, HIGH);}
-    else {this->led(front, LOW);}
-    return side_open;
+    return (this->getDistance(distance_front) > (this->close - 10));
     break;
   case back:
     return (this->getDistance(distance_back) > this->close);
@@ -87,13 +77,19 @@ int Robot::open(const int direction) {
 int Robot::wallFollowDir() {
   if (this->getDistance(left_front) < this->close &&
     this->getDistance(left_back) < this->close) {
+    this->led(right, HIGH);
+    this->led(left, LOW);
     return left;
   }
   else if (this->getDistance(right_front) < this->close &&
     this->getDistance(right_back) < this->close) {
+    this->led(left, HIGH);
+    this->led(right, LOW);
     return right;
   }
   else {
+    this->led(left, LOW);
+    this->led(right, LOW);
     return 0;
   }
 }
@@ -159,11 +155,12 @@ void Robot::turn(const int direction) {
   this->stop();
   if (direction == straight) {
     while(!this->wallFollowDir()) {
-      this->led(blue, HIGH);
-      this->caster(0);
+      this->led(front, HIGH);
+      this->caster(5);
       this->motor();
+      delay(50);
     }
-    this->led(blue, LOW);
+    this->led(front, LOW);
   }
   else if (direction == uturn) {
     this->caster(90);

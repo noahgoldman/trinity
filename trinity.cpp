@@ -10,13 +10,13 @@ volatile int uv = 0, line, room, initial_exit = 0;
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
-const float ideal = 13;
-const float kPWall = 2;
+const float ideal = 11;
+const float kPWall = 1;
 const float sensor_distance = 17;
 const float close = 30;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 70;
+const int speed = 85;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -26,7 +26,7 @@ int room4[] = {right, left, uturn, left};
 int room5[] = {right, left, uturn, straight, left, left};
 int room6[] = {left, left, straight, uturn, left};
 
-int path[7] = {left, uturn, left, uturn, straight, left, left};
+int path[6] = {left, right, uturn, right, left, left};
 int step = 0;
 
 Robot robot(close, sensor_distance, speed);
@@ -65,7 +65,8 @@ void enter(const int dir) {
 void checkTurn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (robot.open(front) && robot.open(right) && robot.open(left)) {
+  if (path[step] != uturn && 
+      (robot.open(front) && robot.open(right) && robot.open(left))) {
     // Turn according to the path
     robot.turn(path[step]); 
     step++;
@@ -191,12 +192,17 @@ void extinguish() {
 
 /*
 void set_leds() {
-  robot.led_off();
-  if (robot.open(right)) {
-    robot.led(right);
-  }
   if (robot.wallFollowDir() == right) {
-    robot.led(straight);
+    robot.led(right, HIGH);
+  }
+  else {
+    robot.led(right, LOW);
+  }
+  if (robot.wallFollowDir() == left) {
+    robot.led(left, HIGH);
+  }
+  else {
+    robot.led(left, LOW);
   }
 }
 */
@@ -234,7 +240,6 @@ void loop() {
   int avg = count / trials;
   SerialUSB.println(avg);
   */
-
   interpret_ir();
   if (!initial_exit) {
     escape();
