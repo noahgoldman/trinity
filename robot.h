@@ -26,6 +26,8 @@ class Robot {
         float getDistance(const int sensor);
         float gyro();
         int wallFollowDir();
+        void led(const int direction, const int state);
+        void led_off();
     private:
         float calcAngle(float distance1, float distance2);
         float distanceRegression(float voltage, int old);

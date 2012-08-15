@@ -13,10 +13,10 @@ const int straight = front;
 const float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
-const float close = 35;
+const float close = 30;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 85;
+const int speed = 70;
 
 // These paths actually are true and should be used
 int room1[] = {left, uturn, left, uturn, straight, left, left};
@@ -40,7 +40,7 @@ float getWfError(const int dir) {
 // Primary wall following function
 void wallFollow() {
   int dir = robot.wallFollowDir();
-  if (!dir) {
+  if (dir == 0) {
     robot.caster(0);
     robot.motor();
   }
@@ -189,6 +189,18 @@ void extinguish() {
   robot.fan();
 }
 
+/*
+void set_leds() {
+  robot.led_off();
+  if (robot.open(right)) {
+    robot.led(right);
+  }
+  if (robot.wallFollowDir() == right) {
+    robot.led(straight);
+  }
+}
+*/
+
 void setup() {
   robot.setup();
   attachInterrupt(36, ir, RISING);
@@ -201,6 +213,17 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  /*
+  SerialUSB.print("right front: ");
+  SerialUSB.print(robot.getDistance(18));
+  SerialUSB.print(" right back: ");
+  SerialUSB.print(robot.getDistance(19));
+  SerialUSB.print(" left front: ");
+  SerialUSB.print(robot.getDistance(16));
+  SerialUSB.print(" right back: ");
+  SerialUSB.println(robot.getDistance(17));
+  delay(1000);
+  */
   /*
   int trials = 1000000;
   unsigned long int count = 0;

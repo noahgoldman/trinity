@@ -20,6 +20,7 @@ const int left_back = 17, left_front = 16, right_back = 19, right_front = 18,
       distance_front = 15, distance_back = 10;
 const int caster_pin = 27, tower_pin = 28;
 const int uvtron = 37, line = 36; 
+const int red = 24, blue = 25, green = 26;
 
 TwoWire wire(5, 9);
 
@@ -54,24 +55,34 @@ float Robot::distanceRegression(float voltage, int old) {
 }
 
 int Robot::open(const int direction) {
+  int side_open;
   switch (direction) {
   case left:
-    return ((this->getDistance(left_front) > this->close) &&
+    side_open = ((this->getDistance(left_front) > this->close) &&
       (this->getDistance(left_back) > this->close));
+    if (side_open) {this->led(left, HIGH);}
+    else {this->led(right, LOW);}
+    return side_open;
     break;
   case right:
-    return ((this->getDistance(right_front) > this->close) &&
+    side_open = ((this->getDistance(right_front) > this->close) &&
       (this->getDistance(right_back) > this->close));
+    if (side_open) {this->led(right, HIGH);}
+    else {this->led(right, LOW);}
+    return side_open;
     break;
   case front:
-    return (this->getDistance(distance_front) > (this->close - 15));
+    side_open = (this->getDistance(distance_front) > (this->close - 10));
+    if (side_open) {this->led(front, HIGH);}
+    else {this->led(front, LOW);}
+    return side_open;
     break;
   case back:
     return (this->getDistance(distance_back) > this->close);
     break;
   }
-  return 0;
-}
+    return 0;
+  }
 
 int Robot::wallFollowDir() {
   if (this->getDistance(left_front) < this->close &&
@@ -147,13 +158,14 @@ void Robot::turn(const int direction) {
   }
   this->stop();
   if (direction == straight) {
-    delay(2000);
     while(!this->wallFollowDir()) {
+      this->led(blue, HIGH);
       this->caster(0);
       this->motor();
     }
+    this->led(blue, LOW);
   }
-  if (direction == uturn) {
+  else if (direction == uturn) {
     this->caster(90);
     this->motor(80,48);
     while(angle < 180) {
@@ -162,8 +174,8 @@ void Robot::turn(const int direction) {
         time = millis();
         delay(5);
         SerialUSB.println(angle);
-      }
     }
+  }
   else {
     this->caster(45 * direction);
     delay(500);
@@ -236,6 +248,9 @@ void Robot::pinSetup() {
   pinMode(relay, OUTPUT);
   pinMode(caster_pin, PWM);
   pinMode(tower_pin, PWM);
+  pinMode(red, OUTPUT);
+  pinMode(blue, OUTPUT);
+  pinMode(green, OUTPUT);
   pinMode(BOARD_LED_PIN, OUTPUT);
 
   // Analog Inputs
@@ -304,4 +319,22 @@ int Robot::heading() {
 
 float Robot::gyro() {
   return (analogRead(gyropin) - gyrozero);
+}
+
+void Robot::led(const int direction, const int state) {
+  if (direction == right) {
+    digitalWrite(red, state);
+  }
+  else if (direction == straight) {
+    digitalWrite(blue, state);
+  }
+  else if (direction == left) {
+    digitalWrite(green, state);
+  } 
+}
+
+void Robot::led_off() {
+  digitalWrite(red, LOW);
+  digitalWrite(blue, LOW);
+  digitalWrite(green, LOW);
 }
