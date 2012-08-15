@@ -21,6 +21,8 @@ const int left_back = 17, left_front = 16, right_back = 19, right_front = 18,
 const int caster_pin = 27, tower_pin = 28;
 const int uvtron = 37, line = 36; 
 
+TwoWire wire(5, 9);
+
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
     const int speed)
@@ -249,70 +251,48 @@ void Robot::pinSetup() {
 
 void Robot::setup() {
   Serial1.begin(9600);
+  wire.begin();
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);
 
   this->pinSetup();
 
-  //this->configMagnetometer();    
+  this->configMagnetometer();    
 }
 
 void Robot::configMagnetometer() {
-  // Set the mode to continuous measurement
-  i2c_msg continuous_measurement;
-  uint8 measurement_msg[2];
-
-  measurement_msg[0] = 0x02;
-  measurement_msg[1] = 0x00;
-
-  continuous_measurement.addr = MAG_ADDR;
-  continuous_measurement.flags = 0;
-  continuous_measurement.data = measurement_msg;
-  continuous_measurement.length = sizeof(measurement_msg);
-  continuous_measurement.xferred = 0;
-
-  i2c_master_enable(I2C1, 0);
-
-  i2c_master_xfer(I2C1, &continuous_measurement, 1, 0);
+  wire.beginTransmission(MAG_ADDR);
+  wire.send(0x02);
+  wire.send(0x00);
+  wire.endTransmission();
 }
 
 int Robot::heading() {
   int x = 0, y = 0, z = 0;
 
-  i2c_msg read_device[2];
+  // Select the register to start reading data from
+  wire.beginTransmission(MAG_ADDR);
+  wire.send(0x03);
+  wire.endTransmission();
 
-  uint8 start_register = 0x03;
-  uint8 read_msg_data[6];
-
-  read_device[0].addr = MAG_ADDR;
-  read_device[0].flags = 0;
-  read_device[0].data = &start_register;
-  read_device[0].length = sizeof(start_register);
-  read_device[0].xferred = 0;
-
-  read_device[1].addr = MAG_ADDR;
-  read_device[1].flags = I2C_MSG_READ;
-  read_device[1].data = read_msg_data;
-  read_device[1].length = sizeof(read_msg_data);
-  read_device[1].xferred = 0;
-
-  i2c_master_xfer(I2C1, read_device, 2, 2);
   // Read data from each axis.
   // All registers must be read even though we only use x and y
-  x = read_msg_data[0] << 8;
-  x |= read_msg_data[1];
-  z = read_msg_data[2];
-  z |= read_msg_data[3];
-  y = read_msg_data[4];
-  y |= read_msg_data[5];
+  wire.requestFrom(MAG_ADDR, 6);
+  if (6 <= wire.available()) {
+    // Combine the complement values to get the actual readings
+    x = wire.receive() << 8;
+    x |= wire.receive();
+    z = wire.receive() << 8;
+    z |= wire.receive();
+    y = wire.receive() << 8;
+    y |= wire.receive();
+  }
 
   // Both x and y need to have their centers adjusted and x's range 
   // is changed as well
   x -= 580;
   x *= -483/423;
   y += 135.5;
-  z += 167;
-  z *= 1367/1174;
 
   float heading = atan2(x, y);
 

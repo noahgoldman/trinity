@@ -65,7 +65,7 @@ void enter(const int dir) {
 void checkTurn() {
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (robot.open(front) && robot.open(right) && robot.wallFollowDir() != left) {
+  if (robot.open(front) && robot.open(right) && robot.open(left)) {
     // Turn according to the path
     robot.turn(path[step]); 
     step++;
@@ -201,8 +201,6 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  SerialUSB.println(robot.heading());
-  delay(100);
   /*
   int trials = 1000000;
   unsigned long int count = 0;
@@ -214,7 +212,6 @@ void loop() {
   SerialUSB.println(avg);
   */
 
-  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -225,7 +222,6 @@ void loop() {
   else {
     navigate();
   }
-  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad
