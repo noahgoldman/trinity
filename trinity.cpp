@@ -10,7 +10,7 @@ volatile int uv = 0, line, room, initial_exit = 0;
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
-const float ideal = 11;
+const float ideal = 13;
 const float kPWall = 1;
 const float sensor_distance = 17;
 const float close = 30;
@@ -26,7 +26,7 @@ int room4[] = {right, left, uturn, left};
 int room5[] = {right, left, uturn, straight, left, left};
 int room6[] = {left, left, straight, uturn, left};
 
-int path[6] = {left, right, uturn, right, left, left};
+int path[7] = {left, uturn, left, uturn, straight, left, left};
 int step = 0;
 
 Robot robot(close, sensor_distance, speed);

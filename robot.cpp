@@ -156,7 +156,7 @@ void Robot::turn(const int direction) {
   if (direction == straight) {
     while(!this->wallFollowDir()) {
       this->led(front, HIGH);
-      this->caster(5);
+      this->caster(15);
       this->motor();
       delay(50);
     }
@@ -175,7 +175,6 @@ void Robot::turn(const int direction) {
   }
   else {
     this->caster(45 * direction);
-    delay(500);
     if (direction == right) {
       this->motor(80,64);
     }
@@ -192,7 +191,6 @@ void Robot::turn(const int direction) {
   }
   this->caster(0);
   this->stop();
-  delay(1000);
 }
 
 void Robot::UV(const int direction) {
