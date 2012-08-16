@@ -49,7 +49,7 @@ float Robot::distanceRegression(float voltage, int old) {
     distance = 66.2801 * pow(EMATH, (-0.000636283 * voltage));
   }
   else {
-    distance = 52.6639 * pow(EMATH, (-0.00106323 * voltage));
+    distance = -17.9294 * log(0.00212468 * voltage);
   }
   return distance;
 }
@@ -57,15 +57,15 @@ float Robot::distanceRegression(float voltage, int old) {
 int Robot::open(const int direction) {
   switch (direction) {
   case left:
-     return ((this->getDistance(left_front) > this->close) &&
-      (this->getDistance(left_back) > this->close));
+     return (this->getDistance(left_front) > this->close);
+      //(this->getDistance(left_back) > this->close));
     break;
   case right:
     return ((this->getDistance(right_front) > this->close) &&
       (this->getDistance(right_back) > this->close));
     break;
   case front:
-    return (this->getDistance(distance_front) > (this->close - 10));
+    return (this->getDistance(distance_front) > (this->close - 15));
     break;
   case back:
     return (this->getDistance(distance_back) > this->close);
@@ -155,12 +155,10 @@ void Robot::turn(const int direction) {
   this->stop();
   if (direction == straight) {
     while(!this->wallFollowDir()) {
-      this->led(front, HIGH);
       this->caster(15);
       this->motor();
       delay(50);
     }
-    this->led(front, LOW);
   }
   else if (direction == uturn) {
     this->caster(90);
