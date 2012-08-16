@@ -72,12 +72,17 @@ void enter(const int dir) {
 // Turning and navigational logic works in the following manner (order is very 
 //    important):
 void checkTurn() {
+  if (start_room == 3 && path[start_room][step] != uturn &&
+      (robot.open(front) && robot.open(right) && 
+       robot.getDistance(17) > close)) {
+    robot.turn(path[start_room][step]); 
+    step++;
+  }
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (path[start_room][step] != uturn && 
+  else if (start_room != 3 && path[start_room][step] != uturn && 
       (robot.open(front) && robot.open(right) && robot.open(left))) {
     // Turn according to the path
-    robot.led(straight, HIGH);
     robot.turn(path[start_room][step]); 
     step++;
   }
