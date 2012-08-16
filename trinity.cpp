@@ -4,6 +4,8 @@
 #include <Servo/Servo.h>
 #include <Wire/Wire.h>
 
+#define END 10
+
 // These two constants are true if either uv or line is detected
 volatile int uv = 0, line, room, initial_exit = 0;
 
@@ -19,14 +21,15 @@ const int path_margin = 20;
 const int speed = 85;
 
 // These paths actually are true and should be used
-int room1[] = {left, uturn, left, uturn, straight, left, left};
-int room2[] = {left, left, uturn, straight, left, left};
-int room3[] = {left, right, uturn, right, left, left};
-int room4[] = {right, left, uturn, left};
-int room5[] = {right, left, uturn, straight, left, left};
-int room6[] = {left, left, straight, uturn, left};
+int path[6][7] = { {left, uturn, left, uturn, straight, left, left},
+  {left, left, uturn, straight, left, left, END},
+  {left, right, uturn, right, left, left, END},
+  {right, left, uturn, left, END, END, END},
+  {right, left, uturn, straight, left, left, END},
+  {left, left, straight, uturn, left, END, END},
+};
 
-int path[7] = {left, uturn, left, uturn, straight, left, left};
+int start_room = 0;
 int step = 0;
 
 Robot robot(close, sensor_distance, speed);
@@ -63,18 +66,24 @@ void enter(const int dir) {
 // Turning and navigational logic works in the following manner (order is very 
 //    important):
 void checkTurn() {
+  if (start_room == 3 && path[start_room][step] != uturn &&
+      (robot.open(front) && robot.open(right) && 
+       robot.getDistance(17) > close)) {
+    robot.turn(path[start_room][step]); 
+    step++;
+  }
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  if (path[step] != uturn && 
+  else if (start_room != 3 && path[start_room][step] != uturn && 
       (robot.open(front) && robot.open(right) && robot.open(left))) {
     // Turn according to the path
-    robot.turn(path[step]); 
+    robot.turn(path[start_room][step]); 
     step++;
   }
   // If the robot is about to crash, it probably shouldn't
   // Run the next step in the path if the front is closed
   else if (!robot.open(front)) {
-    robot.turn(path[step]);
+    robot.turn(path[start_room][step]);
     step++;
   }
   // The next two cases handle when a side is open. You should only turn into
@@ -113,7 +122,7 @@ void exit() {
     robot.caster(0);
     robot.motor();  
   } 
-  robot.turn(path[step]);
+  robot.turn(path[start_room][step]);
   step++;
 }
 
@@ -135,21 +144,20 @@ void interpret_ir() {
 //
 // TODO the function returns a pointer to the path array, this should likely be
 //    reworked
-int *getPath() {
+void getPath() {
   float heading = robot.heading();
   if ((270 - path_margin) > heading && heading < (270 + path_margin)) {
-    return room1;
+    start_room = 1;
   }
   else if ((90 - path_margin) < heading && heading < (90 + path_margin)) {
-    return room2;
+    start_room = 2;
   }
   else if ((180 - path_margin) < heading && heading < (180 + path_margin)) {
-    return room3;
+    start_room = 3;
   }
   else if ((360 - path_margin) < heading || heading > (path_margin)) {
-    return room4;
+    start_room = 4;
   }
-  return 0;
 }
 
 // This is looped continuously you leave the initial room
