@@ -19,6 +19,7 @@ const float close = 25;
 const int check_time = 0;
 const int path_margin = 20;
 const int speed = 90;
+const int turn_speed = 26;
 
 int path[6][7] = { 
   // Room 0 
@@ -35,11 +36,11 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 4;
+int start_room = 2;
 int step = 0;
 unsigned int path_time;
 
-Robot robot(close, sensor_distance, speed);
+Robot robot(close, sensor_distance, speed, turn_speed);
 
 // Calculates the wall following error. Multiplying by the direction (1 or -1) 
 //      should correctly adjust for wall following side
@@ -51,8 +52,7 @@ float getWfError(const int dir) {
 void wallFollow() {
   int dir = robot.wallFollowDir();
   if (dir == 0) {
-    robot.caster(0);
-    robot.motor();
+    robot.driveStraight();
   }
   else {
     float angle = robot.getAngle(dir);
@@ -71,7 +71,7 @@ void enter(const int dir) {
 }
 
 void resetPathTime() {
-  path_time = millis() + 250;
+  path_time = millis() + 750;
 }
 
 // Turning and navigational logic works in the following manner (order is very 
@@ -132,29 +132,25 @@ void ir() {
 }
 
 void exit() {
-  robot.caster(0);
-  robot.motor();
+  robot.driveStraight();
   delay(250);
   line = 0;
 
-  int old_ideal = ideal;
-  ideal = 25;
   while (robot.open(front) && !line) {
     if (!robot.wallFollowDir()) {
       wallFollow();
     } else {
-      robot.caster(0);
-      robot.motor();
+      robot.driveStraight();
     }
   } 
   int reverse = 0;
   if (line) {
     reverse = 1;
-    path_time = millis() + 2575;
   }
   robot.turn(path[start_room][step], reverse);
   step++;
-  ideal = old_ideal;
+
+  if (line) path_time = millis() + 1000;
 }
 
 void interpret_ir() {

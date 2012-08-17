@@ -6,7 +6,8 @@
 class Robot {
     public:
         explicit Robot(const float close_threshold, 
-            const float distance_between, const int speed);
+            const float distance_between, const int speed,
+            const int turn_speed);
         int open(const int direction);
         float getAngle(const int direction);
         float distance(const int direction);
@@ -29,6 +30,7 @@ class Robot {
         int wallFollowDir();
         void led(const int direction, const int state);
         void led_off();
+        void driveStraight();
     private:
         float calcAngle(float distance1, float distance2);
         float distanceRegression(float voltage, int old);
@@ -36,6 +38,7 @@ class Robot {
         int writeRegister(int deviceAddress, byte address, byte val);
         int readRegister(int deviceAddress, byte address);
         void configGyro();
+        void motorTurn(const int direction, int reverse);
 
         Servo caster_servo;
         Servo tower_servo;
@@ -43,6 +46,7 @@ class Robot {
         float close;
         float sensor_distance;
         int base_speed;
+        int turn_speed;
 };
 
 #endif

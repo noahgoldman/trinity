@@ -26,10 +26,11 @@ TwoWire wire(5, 9);
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
-    const int speed)
+    const int speed, const int turn_speed)
   : close(close_threshold),
   sensor_distance(distance_between),
-  base_speed(speed) {}
+  base_speed(speed),
+  turn_speed(turn_speed) {}
 
 float Robot::getDistance(const int sensor) {
   int voltage = analogRead(sensor);
@@ -65,7 +66,7 @@ int Robot::open(const int direction) {
       (this->getDistance(right_back) > this->close));
     break;
   case front:
-    return (this->getDistance(distance_front) > this->close);
+    return (this->getDistance(distance_front) > this->close - 3);
     break;
   case back:
     return (this->getDistance(distance_back) > this->close);
@@ -145,6 +146,17 @@ float Robot::distance(const int direction) {
   return pdist;
 }
 
+void Robot::motorTurn(const int direction, int reverse) {
+  if (reverse) {
+    if (direction == right) this->motor(64, 64 - turn_speed);
+    if (direction == left) this->motor(64 - turn_speed, 64);
+  } else {
+    if (direction == right) this->motor(64 + turn_speed, 64);
+    if (direction == left) this->motor(64, 64 + turn_speed);
+  }
+}
+
+
 void Robot::turn(const int direction) {
   this->turn(direction, 0);
 }
@@ -166,7 +178,7 @@ void Robot::turn(const int direction, int reverse) {
   }
   else if (direction == uturn) {
     this->caster(90);
-    this->motor(80,48);
+    this->motorTurn(right, 0);
     while(angle < 170) {
         double width = 1000 / (millis() - time);
         angle += (this->gyro() / gyrorate)/width; 
@@ -176,30 +188,25 @@ void Robot::turn(const int direction, int reverse) {
     }
   }
   else {
-    int speed_add = 26;
     if (reverse) {
       this->caster(45 * direction * -1);
-      if (direction == right) {
-        this->motor(70, 64 - speed_add);
-      }
-      else if (direction == left) {
-        this->motor(64 - speed_add, 70);
-      }
     } else {
       this->caster(45 * direction);
-      if (direction == right) {
-        this->motor(64 + speed_add, 64);
-      }
-      else if (direction == left) {
-        this->motor(64, 64 + speed_add);
-      }
     }
+    this->motorTurn(direction, reverse); 
+    
+    int kturn_state = 0;
     while(angle < (90 + current_angle) && angle > (-90 + current_angle)) {
+      if ((angle > 45 || angle < -45) && !kturn_state && reverse) {
+        this->caster(45 * direction);
+        delay(100);
+        this->motorTurn(direction, 0);
+        kturn_state = 1;
+      }
       double width = 1000 / (millis() - time);
       angle += (this->gyro() / gyrorate)/width; 
       time = millis();
       delay(5);
-      SerialUSB.println(angle);
     }
   }
   this->caster(0);
@@ -345,4 +352,9 @@ void Robot::led_off() {
   digitalWrite(red, LOW);
   digitalWrite(blue, LOW);
   digitalWrite(green, LOW);
+}
+
+void Robot::driveStraight() {
+  this->caster(0);
+  this->motor();
 }
