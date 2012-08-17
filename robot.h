@@ -12,6 +12,7 @@ class Robot {
         float distance(const int direction);
         void fan();
         void turn(const int direction);
+        void turn(const int direction, int reverse);
         int heading();
         void UV(const int direction);
         void caster(float angle);

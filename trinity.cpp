@@ -12,7 +12,7 @@ volatile int uv = 0, line, room = 0, initial_exit = 0;
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
-const float ideal = 13;
+float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
 const float close = 25;
@@ -35,7 +35,7 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 5;
+int start_room = 4;
 int step = 0;
 unsigned int path_time;
 
@@ -132,12 +132,29 @@ void ir() {
 }
 
 void exit() {
-  while (robot.open(front)) {
-    robot.caster(0);
-    robot.motor();  
+  robot.caster(0);
+  robot.motor();
+  delay(250);
+  line = 0;
+
+  int old_ideal = ideal;
+  ideal = 25;
+  while (robot.open(front) && !line) {
+    if (!robot.wallFollowDir()) {
+      wallFollow();
+    } else {
+      robot.caster(0);
+      robot.motor();
+    }
   } 
-  robot.turn(path[start_room][step]);
+  int reverse = 0;
+  if (line) {
+    reverse = 1;
+    path_time = millis() + 2575;
+  }
+  robot.turn(path[start_room][step], reverse);
   step++;
+  ideal = old_ideal;
 }
 
 void interpret_ir() {

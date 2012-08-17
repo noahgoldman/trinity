@@ -146,6 +146,10 @@ float Robot::distance(const int direction) {
 }
 
 void Robot::turn(const int direction) {
+  this->turn(direction, 0);
+}
+
+void Robot::turn(const int direction, int reverse) {
   double angle = 0;
   unsigned long int time = millis();
   float current_angle = 0;
@@ -172,12 +176,23 @@ void Robot::turn(const int direction) {
     }
   }
   else {
-    this->caster(45 * direction);
-    if (direction == right) {
-      this->motor(80,64);
-    }
-    else if (direction == left) {
-      this->motor(64,80);
+    int speed_add = 26;
+    if (reverse) {
+      this->caster(45 * direction * -1);
+      if (direction == right) {
+        this->motor(70, 64 - speed_add);
+      }
+      else if (direction == left) {
+        this->motor(64 - speed_add, 70);
+      }
+    } else {
+      this->caster(45 * direction);
+      if (direction == right) {
+        this->motor(64 + speed_add, 64);
+      }
+      else if (direction == left) {
+        this->motor(64, 64 + speed_add);
+      }
     }
     while(angle < (90 + current_angle) && angle > (-90 + current_angle)) {
       double width = 1000 / (millis() - time);
