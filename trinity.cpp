@@ -12,13 +12,13 @@ volatile int uv = 0, line, room = 0, initial_exit = 0;
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
-const float ideal = 11;
+const float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
-const float close = 30;
+const float close = 25;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 85;
+const int speed = 90;
 
 int path[6][7] = { 
   // Room 0 
@@ -35,8 +35,9 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 0;
+int start_room = 5;
 int step = 0;
+unsigned int path_time;
 
 Robot robot(close, sensor_distance, speed);
 
@@ -69,28 +70,35 @@ void enter(const int dir) {
   robot.stop();
 }
 
+void resetPathTime() {
+  path_time = millis() + 250;
+}
+
 // Turning and navigational logic works in the following manner (order is very 
 //    important):
 void checkTurn() {
-  if (start_room == 3 && path[start_room][step] != uturn &&
+  if (path_time < millis() && start_room == 2 && path[start_room][step] != uturn &&
       (robot.open(front) && robot.open(right) && 
-       robot.getDistance(17) > close)) {
+       robot.getDistance(16) > close)) {
     robot.turn(path[start_room][step]); 
     step++;
+    resetPathTime();
   }
   // If all sides are open (four corners) then the next step in the path should
   //    be followed
-  else if (start_room != 3 && path[start_room][step] != uturn && 
+  else if (path_time < millis() && start_room != 2 && path[start_room][step] != uturn && 
       (robot.open(front) && robot.open(right) && robot.open(left))) {
     // Turn according to the path
     robot.turn(path[start_room][step]); 
     step++;
+    resetPathTime();
   }
   // If the robot is about to crash, it probably shouldn't
   // Run the next step in the path if the front is closed
-  else if (!robot.open(front)) {
+  else if (path_time < millis() && !robot.open(front)) {
     robot.turn(path[start_room][step]);
     step++;
+    resetPathTime();
   }
   // The next two cases handle when a side is open. You should only turn into
   // the side if the uv tron has activated
@@ -224,6 +232,7 @@ void set_leds() {
 void setup() {
   robot.setup();
   attachInterrupt(36, ir, RISING);
+  resetPathTime();
 }
 
 // The main event loop for the robot should function in the following manner.
@@ -248,15 +257,20 @@ void loop() {
   */
   /*
   int trials = 1000000;
-  unsigned long int count = 0;
+  unsigned long int count_front = 0;
+  unsigned long int count_back = 0;
   for (int i = 0; i < trials; i++) {
-    count += robot.gyro();
+    count_front += analogRead(16);
+    count_back += analogRead(17);
   }
 
-  int avg = count / trials;
-  SerialUSB.println(avg);
+  int avg_front = count_front / trials;
+  int avg_back = count_back / trials;
+  SerialUSB.print("front: ");
+  SerialUSB.print(avg_front);
+  SerialUSB.print(" back: ");
+  SerialUSB.println(avg_back);
   */
-
   interpret_ir();
   if (!initial_exit) {
     escape();

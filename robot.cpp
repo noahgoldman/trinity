@@ -49,7 +49,7 @@ float Robot::distanceRegression(float voltage, int old) {
     distance = 66.2801 * pow(EMATH, (-0.000636283 * voltage));
   }
   else {
-    distance = -17.9294 * log(0.00212468 * voltage);
+    distance = 52.6639 * pow(EMATH, (-0.00106323 * voltage));
   }
   return distance;
 }
@@ -57,15 +57,15 @@ float Robot::distanceRegression(float voltage, int old) {
 int Robot::open(const int direction) {
   switch (direction) {
   case left:
-     return (this->getDistance(left_front) > this->close);
-      //(this->getDistance(left_back) > this->close));
+     return ((this->getDistance(left_front) > this->close) &&
+      (this->getDistance(left_back) > this->close));
     break;
   case right:
     return ((this->getDistance(right_front) > this->close) &&
       (this->getDistance(right_back) > this->close));
     break;
   case front:
-    return (this->getDistance(distance_front) > (this->close - 15));
+    return (this->getDistance(distance_front) > this->close);
     break;
   case back:
     return (this->getDistance(distance_back) > this->close);
@@ -155,7 +155,7 @@ void Robot::turn(const int direction) {
   this->stop();
   if (direction == straight) {
     while(!this->wallFollowDir()) {
-      this->caster(15);
+      this->caster(10);
       this->motor();
       delay(50);
     }
@@ -163,7 +163,7 @@ void Robot::turn(const int direction) {
   else if (direction == uturn) {
     this->caster(90);
     this->motor(80,48);
-    while(angle < 180) {
+    while(angle < 170) {
         double width = 1000 / (millis() - time);
         angle += (this->gyro() / gyrorate)/width; 
         time = millis();
