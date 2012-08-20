@@ -18,7 +18,7 @@ const float sensor_distance = 17;
 const float close = 25;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 90;
+const int speed = 80;
 const int turn_speed = 26;
 
 int path[6][7] = { 
@@ -36,7 +36,7 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 2;
+int start_room = 1;
 int step = 0;
 unsigned int path_time;
 
@@ -255,6 +255,7 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  SerialUSB.println(robot.heading());
   /*
   SerialUSB.print("front: ");
   SerialUSB.print(robot.getDistance(15));
@@ -284,6 +285,7 @@ void loop() {
   SerialUSB.print(" back: ");
   SerialUSB.println(avg_back);
   */
+  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -294,6 +296,7 @@ void loop() {
   else {
     navigate();
   }
+  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad

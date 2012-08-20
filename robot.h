@@ -2,6 +2,7 @@
 #define ROBOT_H 
 
 #include <Servo/Servo.h>
+#include <libmaple/i2c.h>
 
 class Robot {
     public:
@@ -39,6 +40,7 @@ class Robot {
         int readRegister(int deviceAddress, byte address);
         void configGyro();
         void motorTurn(const int direction, int reverse);
+        void i2cInitMessage(i2c_msg *msg, uint8 *data, int read);
 
         Servo caster_servo;
         Servo tower_servo;
