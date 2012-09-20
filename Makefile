@@ -52,7 +52,7 @@ include $(MAKEDIR)/build-templates.mk
 # It slows compilation noticeably; remove after 1 release.
 TARGET_FLAGS    += -I$(LIBMAPLE_PATH)/include/libmaple                       \
                    -I$(WIRISH_PATH)/include/wirish
-GLOBAL_CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
+GLOBAL_CFLAGS   := -Wall -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 		   -nostdlib -ffunction-sections -fdata-sections	     \
 		   -Wl,--gc-sections $(TARGET_FLAGS)
 GLOBAL_CXXFLAGS := -fno-rtti -fno-exceptions -Wall $(TARGET_FLAGS)

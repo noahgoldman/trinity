@@ -1,12 +1,14 @@
-#ifndef ROBOT_H
-#define ROBOT_H 
+// Copyright 2012, Pegasus Team
+
+#ifndef ROBOT_H_
+#define ROBOT_H_
 
 #include <Servo/Servo.h>
 #include <libmaple/i2c.h>
 
 class Robot {
     public:
-        explicit Robot(const float close_threshold, 
+        explicit Robot(const float close_threshold,
             const float distance_between, const int speed,
             const int turn_speed);
         int open(const int direction);
@@ -32,6 +34,7 @@ class Robot {
         void led(const int direction, const int state);
         void led_off();
         void driveStraight();
+
     private:
         float calcAngle(float distance1, float distance2);
         float distanceRegression(float voltage, int old);
@@ -51,4 +54,4 @@ class Robot {
         int turn_speed;
 };
 
-#endif
+#endif  // ROBOT_H_

@@ -1,4 +1,6 @@
-#include "robot.h"
+// Copyright 2012, Pegasus Team
+
+#include "./robot.h"
 #include <math.h>
 #include <Wire/Wire.h>
 #include <libmaple/i2c.h>
@@ -19,8 +21,10 @@ const int gyropin = 12;
 const int left_back = 17, left_front = 16, right_back = 19, right_front = 18,
       distance_front = 15, distance_back = 10;
 const int caster_pin = 27, tower_pin = 28;
-const int uvtron = 37, line = 36; 
+const int uvtron = 37, line = 36;
 const int red = 24, blue = 25, green = 26;
+
+TwoWire wire(5, 9);
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
@@ -35,8 +39,7 @@ float Robot::getDistance(const int sensor) {
   float distance;
   if (sensor == distance_front || sensor == distance_back) {
     distance = this->distanceRegression(voltage, 1);
-  }
-  else {
+  } else {
     distance = this->distanceRegression(voltage, 0);
   }
   return distance;
@@ -46,8 +49,7 @@ float Robot::distanceRegression(float voltage, int old) {
   float distance;
   if (old) {
     distance = 66.2801 * pow(EMATH, (-0.000636283 * voltage));
-  }
-  else {
+  } else {
     distance = 52.6639 * pow(EMATH, (-0.00106323 * voltage));
   }
   return distance;
@@ -79,14 +81,12 @@ int Robot::wallFollowDir() {
     this->led(right, HIGH);
     this->led(left, LOW);
     return left;
-  }
-  else if (this->getDistance(right_front) < this->close &&
+  } else if (this->getDistance(right_front) < this->close &&
     this->getDistance(right_back) < this->close) {
     this->led(left, HIGH);
     this->led(right, LOW);
     return right;
-  }
-  else {
+  } else {
     this->led(left, LOW);
     this->led(right, LOW);
     return 0;
@@ -104,8 +104,7 @@ float Robot::getAngle(const int direction) {
   if (direction == left) {
     distance1 = this->getDistance(left_front);
     distance2 = this->getDistance(left_back);
-  }
-  else if (direction == right) {
+  } else if (direction == right) {
     distance1 = this->getDistance(right_front);
     distance2 = this->getDistance(right_back);
   }
@@ -113,22 +112,19 @@ float Robot::getAngle(const int direction) {
   if (direction == right) angle *= -1;
   SerialUSB.println(angle);
   return angle;
-} 
+}
 
 float Robot::distance(const int direction) {
   float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
     distance2 = this->getDistance(left_back);
-  }
-  else if (direction == right) {
+  } else if (direction == right) {
     distance1 = this->getDistance(right_front);
     distance2 = this->getDistance(right_back);
-  }
-  else if (direction == front) {
+  } else if (direction == front) {
     return this->getDistance(distance_front);
-  }
-  else if (direction == back) {
+  } else if (direction == back) {
     return this->getDistance(back);
   }
   float theta = fabs(this->calcAngle(distance1, distance2));
@@ -161,40 +157,38 @@ void Robot::turn(const int direction) {
 
 void Robot::turn(const int direction, int reverse) {
   double angle = 0;
-  unsigned long int time = millis();
+  unsigned int time = millis();
   float current_angle = 0;
   if (this->wallFollowDir() == direction * -1) {
     current_angle = this->getAngle(direction * -1);
   }
   this->stop();
   if (direction == straight) {
-    while(!this->wallFollowDir()) {
+    while (!this->wallFollowDir()) {
       this->caster(10);
       this->motor();
       delay(50);
     }
-  }
-  else if (direction == uturn) {
+  } else if (direction == uturn) {
     this->caster(90);
     this->motorTurn(right, 0);
-    while(angle < 160) {
+    while (angle < 160) {
         double width = 1000 / (millis() - time);
-        angle += (this->gyro() / gyrorate)/width; 
+        angle += (this->gyro() / gyrorate)/width;
         time = millis();
         delay(5);
         SerialUSB.println(angle);
     }
-  }
-  else {
+  } else {
     if (reverse) {
       this->caster(45 * direction * -1);
     } else {
       this->caster(45 * direction);
     }
-    this->motorTurn(direction, reverse); 
-    
+    this->motorTurn(direction, reverse);
+
     int kturn_state = 0;
-    while(angle < (90 + current_angle) && angle > (-90 + current_angle)) {
+    while (angle < (90 + current_angle) && angle > (-90 + current_angle)) {
       if ((angle > 45 || angle < -45) && !kturn_state && reverse) {
         this->caster(45 * direction);
         delay(100);
@@ -202,7 +196,7 @@ void Robot::turn(const int direction, int reverse) {
         kturn_state = 1;
       }
       double width = 1000 / (millis() - time);
-      angle += (this->gyro() / gyrorate)/width; 
+      angle += (this->gyro() / gyrorate)/width;
       time = millis();
       delay(5);
     }
@@ -231,8 +225,7 @@ void Robot::motor() {
 void Robot::motor(int left, int right) {
   if (left == 64 && right == 64) {
     Serial1.write(byte(0));
-  }
-  else {
+  } else {
     Serial1.write(byte(left));
     Serial1.write(byte(127 + right));
   }
@@ -285,7 +278,7 @@ void Robot::setup() {
 
   this->pinSetup();
 
-  this->configMagnetometer();    
+  this->configMagnetometer();
 }
 
 void Robot::i2cInitMessage(i2c_msg *msg, uint8 *data, int read) {
@@ -297,83 +290,43 @@ void Robot::i2cInitMessage(i2c_msg *msg, uint8 *data, int read) {
   }
   msg->data = data;
   msg->length = sizeof(data);
-  msg->xferred = 0; 
+  msg->xferred = 0;
 }
-   
+
 
 
 void Robot::configMagnetometer() {
-  i2c_msg settings;
-  i2c_msg gain;
-  i2c_msg continuous_measurement;
-  uint8 measurement_msg[3];
-  uint8 settings_msg[3];
-  uint8 gain_msg[3];
-
-  settings_msg[0] = 0x3C;
-  settings_msg[1] = 0x00;
-  settings_msg[2] = 0x70;
-
-  gain_msg[0] = 0x3C;
-  gain_msg[1] = 0x01;
-  gain_msg[2] = 0xA0;
-
-  measurement_msg[0] = 0x3C;
-  measurement_msg[1] = 0x02;
-  measurement_msg[2] = 0x00;
-
-  this->i2cInitMessage(&settings, settings_msg, 0);
-  this->i2cInitMessage(&gain, gain_msg, 0);
-  this->i2cInitMessage(&continuous_measurement, measurement_msg, 0);
-
-  i2c_master_enable(I2C1, 0);
-
-  i2c_master_xfer(I2C1, &settings, 1, 0);
-  i2c_master_xfer(I2C1, &gain, 1, 0);
-  i2c_master_xfer(I2C1, &continuous_measurement, 1, 0);
-
-  delay(10);
-  this->heading();
+  // Set the mode to continuous measurement
+  wire.begin(MAG_ADDR);
+  wire.beginTransmission(MAG_ADDR);
+  wire.send(0x02);
+  wire.send(0x00);
+  wire.endTransmission();
 }
 
 int Robot::heading() {
-  int x = 0, y = 0, z = 0;
+  int x, y, z;
 
-  i2c_msg read_device[3];
+  // Select the register to start.receiveing data from
+  wire.beginTransmission(MAG_ADDR);
+  wire.send(0x03);
+  wire.endTransmission();
 
-  uint8 read_msg[2];
-  uint8 read_msg_data[6];
-  uint8 restart_register[2];
-
-  read_msg[0] = 0x3D;
-  read_msg[1] = 0x06;
-
-  restart_register[0] = 0x3C;
-  restart_register[0] = 0x03;
-
-  this->i2cInitMessage(&read_device[0], read_msg, 0);
-  this->i2cInitMessage(&read_device[1], read_msg_data, I2C_MSG_READ);
-  this->i2cInitMessage(&read_device[2], restart_register, 0);
-
-
-  i2c_master_xfer(I2C1, read_device, 3, 2);
   // Read data from each axis.
-  // All registers must be read even though we only use x and y
-  x = read_msg_data[0] << 8;
-  x |= read_msg_data[1];
-  z = read_msg_data[2];
-  z |= read_msg_data[3];
-  y = read_msg_data[4];
-  y |= read_msg_data[5];
+  // All registers must be.receive even though we only use x and y
+  wire.requestFrom(MAG_ADDR, 6);
+  if (6 <= wire.available()) {
+    // Combine the complement values to get the actual.receiveings
+    x = wire.receive() << 8;
+    x |= wire.receive();
+    z = wire.receive() << 8;
+    z |= wire.receive();
+    y = wire.receive() << 8;
+    y |= wire.receive();
+  }
 
-  SerialUSB.print("x: ");
-  SerialUSB.print(x);
-  SerialUSB.print(" y: ");
-  SerialUSB.print(y);
-  SerialUSB.print(" z: ");
-  SerialUSB.print(z);
 
-  // Both x and y need to have their centers adjusted and x's range 
+  // Both x and y need to have their centers adjusted and x's range
   // is changed as well
   x -= 580;
   x *= -483/423;
@@ -386,7 +339,7 @@ int Robot::heading() {
   // Correct headings for negative values
   if (heading < 0) heading += 2*PI;
 
-  return heading * 180/PI; 
+  return heading * 180/PI;
 }
 
 float Robot::gyro() {
@@ -396,13 +349,11 @@ float Robot::gyro() {
 void Robot::led(const int direction, const int state) {
   if (direction == right) {
     digitalWrite(red, state);
-  }
-  else if (direction == straight) {
+  } else if (direction == straight) {
     digitalWrite(blue, state);
-  }
-  else if (direction == left) {
+  } else if (direction == left) {
     digitalWrite(green, state);
-  } 
+  }
 }
 
 void Robot::led_off() {
