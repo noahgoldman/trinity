@@ -34,7 +34,7 @@ Robot::Robot(const float close_threshold, const float distance_between,
   base_speed(speed),
   turn_speed(turn_speed) {}
 
-float Robot::getDistance(const int sensor) {
+const float Robot::getDistance(const int sensor) const {
   int voltage = analogRead(sensor);
   float distance;
   if (sensor == distance_front || sensor == distance_back) {
@@ -45,7 +45,7 @@ float Robot::getDistance(const int sensor) {
   return distance;
 }
 
-float Robot::distanceRegression(float voltage, int old) {
+const float Robot::distanceRegression(float voltage, int old) const {
   float distance;
   if (old) {
     distance = 66.2801 * pow(EMATH, (-0.000636283 * voltage));
@@ -55,7 +55,7 @@ float Robot::distanceRegression(float voltage, int old) {
   return distance;
 }
 
-int Robot::open(const int direction) {
+const int Robot::open(const int direction) const {
   switch (direction) {
   case left:
      return ((this->getDistance(left_front) > this->close) &&
@@ -75,7 +75,7 @@ int Robot::open(const int direction) {
     return 0;
   }
 
-int Robot::wallFollowDir() {
+const int Robot::wallFollowDir() const {
   if (this->getDistance(left_front) < this->close &&
     this->getDistance(left_back) < this->close) {
     this->led(right, HIGH);
@@ -93,13 +93,13 @@ int Robot::wallFollowDir() {
   }
 }
 
-float Robot::calcAngle(float distance1, float distance2) {
+const float Robot::calcAngle(float distance1, float distance2) const {
   float theta = atan((distance1 - distance2) / this->sensor_distance);
   theta *= -180/PI;
   return theta;
 }
 
-float Robot::getAngle(const int direction) {
+const float Robot::getAngle(const int direction) const {
   float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
@@ -114,7 +114,7 @@ float Robot::getAngle(const int direction) {
   return angle;
 }
 
-float Robot::distance(const int direction) {
+const float Robot::distance(const int direction) const {
   float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
@@ -140,7 +140,7 @@ float Robot::distance(const int direction) {
   return pdist;
 }
 
-void Robot::motorTurn(const int direction, int reverse) {
+const void Robot::motorTurn(const int direction, int reverse) {
   if (reverse) {
     if (direction == right) this->motor(64, 64 - turn_speed);
     if (direction == left) this->motor(64 - turn_speed, 64);

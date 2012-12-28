@@ -28,7 +28,7 @@ class Robot {
         int flame();
         void setup();
         void pinSetup();
-        float getDistance(const int sensor);
+        const float getDistance(const int sensor) const;
         float gyro();
         int wallFollowDir();
         void led(const int direction, const int state);
@@ -37,7 +37,7 @@ class Robot {
 
     private:
         float calcAngle(float distance1, float distance2);
-        float distanceRegression(float voltage, int old);
+        const float distanceRegression(float voltage, int old) const;
         void configMagnetometer();
         int writeRegister(int deviceAddress, byte address, byte val);
         int readRegister(int deviceAddress, byte address);

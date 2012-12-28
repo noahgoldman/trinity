@@ -15,6 +15,7 @@ BUILD_PATH = build
 LIBMAPLE_PATH := $(SRCROOT)/libmaple
 WIRISH_PATH := $(SRCROOT)/wirish
 SUPPORT_PATH := $(SRCROOT)/support
+LIBRARIES_PATH := $(SRCROOT)/libraries
 # Support files for linker
 LDDIR := $(SUPPORT_PATH)/ld
 # Support files for this Makefile
@@ -50,14 +51,12 @@ include $(MAKEDIR)/build-templates.mk
 # or
 #     #include "wirish.h"
 # It slows compilation noticeably; remove after 1 release.
-TARGET_FLAGS    += -I$(LIBMAPLE_PATH)/include/libmaple                       \
-                   -I$(WIRISH_PATH)/include/wirish
-GLOBAL_CFLAGS   := -Wall -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
+TARGET_FLAGS    += -I$(LIBRARIES_PATH)
+GLOBAL_CFLAGS   := -Wall -Os -g3 -gdwarf-2 \
 		   -nostdlib -ffunction-sections -fdata-sections	     \
 		   -Wl,--gc-sections $(TARGET_FLAGS)
 GLOBAL_CXXFLAGS := -fno-rtti -fno-exceptions -Wall $(TARGET_FLAGS)
-GLOBAL_ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
-		   -x assembler-with-cpp $(TARGET_FLAGS)
+GLOBAL_ASFLAGS  := -x assembler-with-cpp $(TARGET_FLAGS)
 LDFLAGS  = $(TARGET_LDFLAGS) $(TOOLCHAIN_LDFLAGS) -mcpu=cortex-m3 -mthumb \
            -Xlinker --gc-sections \
            -Xassembler --march=armv7-m -Wall
