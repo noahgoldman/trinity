@@ -11,7 +11,7 @@ class Robot {
         explicit Robot(const float close_threshold,
             const float distance_between, const int speed,
             const int turn_speed);
-        int open(const int direction);
+        int open(const int direction) const;
         float getAngle(const int direction);
         float distance(const int direction);
         void fan();

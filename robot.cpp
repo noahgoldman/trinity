@@ -48,14 +48,14 @@ const float Robot::getDistance(const int sensor) const {
 const float Robot::distanceRegression(float voltage, int old) const {
   float distance;
   if (old) {
-    distance = 66.2801 * pow(EMATH, (-0.000636283 * voltage));
+    distance = 64.2801 * pow(EMATH, (-0.000670484 * voltage));
   } else {
-    distance = 52.6639 * pow(EMATH, (-0.00106323 * voltage));
+    distance = 46.8015 * pow(EMATH, (-0.000958948 * voltage));
   }
   return distance;
 }
 
-const int Robot::open(const int direction) const {
+int Robot::open(const int direction) const {
   switch (direction) {
   case left:
      return ((this->getDistance(left_front) > this->close) &&
@@ -75,31 +75,31 @@ const int Robot::open(const int direction) const {
     return 0;
   }
 
-const int Robot::wallFollowDir() const {
+int Robot::wallFollowDir() {
   if (this->getDistance(left_front) < this->close &&
     this->getDistance(left_back) < this->close) {
-    this->led(right, HIGH);
-    this->led(left, LOW);
+    //this->led(right, HIGH);
+    //this->led(left, LOW);
     return left;
   } else if (this->getDistance(right_front) < this->close &&
     this->getDistance(right_back) < this->close) {
-    this->led(left, HIGH);
-    this->led(right, LOW);
+    //this->led(left, HIGH);
+    //this->led(right, LOW);
     return right;
   } else {
-    this->led(left, LOW);
-    this->led(right, LOW);
+    //this->led(left, LOW);
+    //this->led(right, LOW);
     return 0;
   }
 }
 
-const float Robot::calcAngle(float distance1, float distance2) const {
+float Robot::calcAngle(float distance1, float distance2) {
   float theta = atan((distance1 - distance2) / this->sensor_distance);
   theta *= -180/PI;
   return theta;
 }
 
-const float Robot::getAngle(const int direction) const {
+float Robot::getAngle(const int direction) {
   float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
@@ -114,7 +114,7 @@ const float Robot::getAngle(const int direction) const {
   return angle;
 }
 
-const float Robot::distance(const int direction) const {
+float Robot::distance(const int direction) {
   float distance1 = 0, distance2 = 0;
   if (direction == left) {
     distance1 = this->getDistance(left_front);
@@ -140,7 +140,7 @@ const float Robot::distance(const int direction) const {
   return pdist;
 }
 
-const void Robot::motorTurn(const int direction, int reverse) {
+void Robot::motorTurn(const int direction, int reverse) {
   if (reverse) {
     if (direction == right) this->motor(64, 64 - turn_speed);
     if (direction == left) this->motor(64 - turn_speed, 64);
@@ -170,8 +170,9 @@ void Robot::turn(const int direction, int reverse) {
       delay(50);
     }
   } else if (direction == uturn) {
+    this->led(straight, HIGH);
     this->caster(90);
-    this->motorTurn(right, 0);
+    this->motor(64 + turn_speed, 64 - turn_speed);
     while (angle < 160) {
         double width = 1000 / (millis() - time);
         angle += (this->gyro() / gyrorate)/width;
@@ -188,7 +189,7 @@ void Robot::turn(const int direction, int reverse) {
     this->motorTurn(direction, reverse);
 
     int kturn_state = 0;
-    while (angle < (90 + current_angle) && angle > (-90 + current_angle)) {
+    while (angle < (85 + current_angle) && angle > (-85 + current_angle)) {
       if ((angle > 45 || angle < -45) && !kturn_state && reverse) {
         this->caster(45 * direction);
         delay(100);
@@ -219,7 +220,17 @@ void Robot::tower(float angle) {
 
 // This function simply sets the motors to the base_speed
 void Robot::motor() {
-  this->motor(base_speed, base_speed);
+  int dist = this->getDistance(15);
+  int speed;
+  if (dist < 12) {
+    speed = 64;
+  }
+  else if (dist < 30) {
+    speed = 64 + ((2 * dist) - 34);
+  } else {
+    speed = base_speed;
+  }
+  this->motor(speed, speed);
 }
 
 void Robot::motor(int left, int right) {

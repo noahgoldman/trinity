@@ -17,11 +17,14 @@ const int straight = front;
 float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
-const float close = 25;
+const float close = 22;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 80;
+const int speed = 90;
 const int turn_speed = 26;
+const int turn_delay = 1500;
+
+int on;
 
 int path[6][7] = {
   // Room 0
@@ -38,7 +41,7 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 1;
+int start_room = 0;
 int step = 0;
 unsigned int path_time;
 
@@ -72,7 +75,7 @@ void enter(const int dir) {
 }
 
 void resetPathTime() {
-  path_time = millis() + 750;
+  path_time = millis() + turn_delay;
 }
 
 // Turning and navigational logic works in the following manner (order is very
@@ -234,6 +237,7 @@ void set_leds() {
 */
 
 void setup() {
+  on = 1;
   robot.setup();
   attachInterrupt(36, ir, RISING);
   resetPathTime();
@@ -246,7 +250,6 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  SerialUSB.println(robot.heading());
   /*
   SerialUSB.print("front: ");
   SerialUSB.print(robot.getDistance(15));
@@ -266,17 +269,12 @@ void loop() {
   unsigned long int count_back = 0;
   for (int i = 0; i < trials; i++) {
     count_front += analogRead(16);
-    count_back += analogRead(17);
   }
 
   int avg_front = count_front / trials;
-  int avg_back = count_back / trials;
   SerialUSB.print("front: ");
   SerialUSB.print(avg_front);
-  SerialUSB.print(" back: ");
-  SerialUSB.println(avg_back);
   */
-  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -287,7 +285,6 @@ void loop() {
   else {
     navigate();
   }
-  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad
