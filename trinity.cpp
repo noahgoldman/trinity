@@ -87,34 +87,41 @@ void checkTurn() {
     robot.turn(path[start_room][step]);
     step++;
     resetPathTime();
-  } else if (path_time < millis() && start_room != 2
-      && path[start_room][step] != uturn
-      && (robot.open(front) && robot.open(right) && robot.open(left))) {
-    // If all sides are open (four corners) then the next step in the path
-    //    should be followed
-    // Turn according to the path
-    robot.turn(path[start_room][step]);
-    step++;
-    resetPathTime();
-  } else if (path_time < millis() && !robot.open(front)) {
-    // If the robot is about to crash, it probably shouldn't
-    // Run the next step in the path if the front is closed
-    robot.turn(path[start_room][step]);
-    step++;
-    resetPathTime();
-  } else if (robot.open(left)) {
-    // The next two cases handle when a side is open. You should only turn into
-    // the side if the uv tron has activated
-    robot.UV(left);
-    delay(check_time);
-    if (uv) {
-      // enter(left);
+  } else {
+    // Check both sides for uv
+    if (robot.open(left)) {
+      // The next two cases handle when a side is open. You should only turn into
+      // the side if the uv tron has activated
+      robot.UV(left);
+      delay(check_time);
+      if (uv) {
+        // enter(left);
+      }
     }
-  } else if (robot.open(right)) {
-    robot.UV(right);
-    delay(check_time);
-    if (uv) {
-     // enter(right);
+    if (robot.open(right)) {
+      robot.UV(right);
+      delay(check_time);
+      if (uv) {
+       // enter(right);
+      }
+    } 
+
+    // Remaining turning logic
+    if (path_time < millis() && start_room != 2
+        && path[start_room][step] != uturn
+        && (robot.open(front) && robot.open(right) && robot.open(left))) {
+      // If all sides are open (four corners) then the next step in the path
+      //    should be followed
+      // Turn according to the path
+      robot.turn(path[start_room][step]);
+      step++;
+      resetPathTime();
+    } else if (path_time < millis() && !robot.open(front)) {
+      // If the robot is about to crash, it probably shouldn't
+      // Run the next step in the path if the front is closed
+      robot.turn(path[start_room][step]);
+      step++;
+      resetPathTime();
     }
   }
 }
@@ -202,19 +209,25 @@ void escape() {
 //
 // Do a sweep for the max flame value then fire the fans
 void extinguish() {
-  int tower_angle = 1;
+  int tower_angle = -100;
   int max = 0;
-  while (tower_angle <= 90) {
+  int fire_angle;
+  while (tower_angle++ <= 90) {
     robot.tower(tower_angle);
-    int current_flame = robot.flame();
-    if (current_flame > max) {
-      max = tower_angle;
+
+    int current_flame = 0;
+    for (int i = 0; i < 10; i++) {
+      current_flame += robot.flame();
     }
-    tower_angle++;
+
+    if (current_flame > max) {
+      max = current_flame;
+      fire_angle = tower_angle;
+    }
     delay(10);
   }
 
-  robot.tower(max - 10);
+  robot.tower(fire_angle);
   delay(1000);
   robot.fan();
 }
@@ -264,17 +277,19 @@ void loop() {
   delay(1000);
   */
   /*
-  int trials = 1000000;
+  robot.tower(0);
+  int trials = 100000;
   unsigned long int count_front = 0;
   unsigned long int count_back = 0;
   for (int i = 0; i < trials; i++) {
-    count_front += analogRead(16);
+    count_front += analogRead(20);
   }
 
   int avg_front = count_front / trials;
   SerialUSB.print("front: ");
   SerialUSB.print(avg_front);
   */
+  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -285,6 +300,8 @@ void loop() {
   else {
     navigate();
   }
+  */
+  extinguish();
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad

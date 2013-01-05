@@ -290,6 +290,7 @@ void Robot::setup() {
   this->pinSetup();
 
   this->configMagnetometer();
+  digitalWrite(relay, LOW);
 }
 
 void Robot::i2cInitMessage(i2c_msg *msg, uint8 *data, int read) {
@@ -303,8 +304,6 @@ void Robot::i2cInitMessage(i2c_msg *msg, uint8 *data, int read) {
   msg->length = sizeof(data);
   msg->xferred = 0;
 }
-
-
 
 void Robot::configMagnetometer() {
   // Set the mode to continuous measurement
