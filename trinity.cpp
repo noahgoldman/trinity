@@ -13,7 +13,9 @@ volatile int uv = 0, line, room = 0, initial_exit = 0;
 
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
+const int uv_left = 4, uv_right = 5;
 const int straight = front;
+
 float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
@@ -28,7 +30,7 @@ int on;
 
 int path[6][7] = {
   // Room 0
-  {left, uturn, left, uturn, straight, left, left},
+  {left, uv_right, uv_right, left, uv_right, straight, uv_left, left},
   // Room 1
   {left, left, uturn, straight, left, left, END},
   // Room 2
@@ -74,56 +76,94 @@ void enter(const int dir) {
   robot.stop();
 }
 
+int getNextStep() {
+  return path[start_room][step];
+}
+
 void resetPathTime() {
   path_time = millis() + turn_delay;
 }
 
 // Turning and navigational logic works in the following manner (order is very
 //    important):
-void checkTurn() {
-  if (path_time < millis() && start_room == 2 && path[start_room][step] != uturn
+int checkTurn() {
+  if (path_time > millis()) {
+    return 0;
+  } else if (start_room == 2 && path[start_room][step] != uturn
       && (robot.open(front) && robot.open(right)
       && robot.getDistance(16) > close)) {
-    robot.turn(path[start_room][step]);
-    step++;
-    resetPathTime();
-  } else if (path_time < millis() && start_room != 2
-      && path[start_room][step] != uturn
+    // This is the situation for dealing with taking a right on the four corners
+    // coming out of the double room hallway
+    return 1; 
+  } else if (start_room != 2 && path[start_room][step] != uturn
       && (robot.open(front) && robot.open(right) && robot.open(left))) {
     // If all sides are open (four corners) then the next step in the path
     //    should be followed
     // Turn according to the path
-    robot.turn(path[start_room][step]);
-    step++;
-    resetPathTime();
-  } else if (path_time < millis() && !robot.open(front)) {
+    return 1;
+  } else if (!robot.open(front) || robot.open(left) || robot.open(right)) {
     // If the robot is about to crash, it probably shouldn't
     // Run the next step in the path if the front is closed
-    robot.turn(path[start_room][step]);
-    step++;
-    resetPathTime();
-  } else if (robot.open(left)) {
-    // The next two cases handle when a side is open. You should only turn into
-    // the side if the uv tron has activated
-    robot.UV(left);
-    delay(check_time);
-    if (uv) {
-      // enter(left);
-    }
-  } else if (robot.open(right)) {
-    robot.UV(right);
-    delay(check_time);
-    if (uv) {
-     // enter(right);
-    }
+    return 1;
   }
+  return 0;
 }
 
+void tryTurn() {
+  int step = getNextStep();
+  switch (step) {
+    case left:
+      if (robot.open(left)) {
+        robot.turn(left); 
+        ++step;
+      } break;
+    case right:
+      if (robot.open(right)) {
+        robot.turn(right);
+        ++step;
+      } break;
+    case uturn:
+      robot.turn(uturn);
+      ++step;
+      break;
+    case straight:
+      if (robot.open(front)) {
+        robot.turn(straight);
+        ++step;
+      } break;
+    case uv_left:
+      if (robot.open(left)) {
+        robot.UV(left);
+        delay(check_time);
+        if (uv) {
+          // enter(left);
+        } else if (!robot.open(front)) {
+          robot.turn(uturn);
+        }
+        step++;
+      } break;
+    case uv_right:
+      if (robot.open(right)) {
+        robot.UV(right);
+        delay(check_time);
+        if (uv) {
+          // enter(right);
+        } else if (!robot.open(front)) {
+          robot.turn(uturn);
+        }
+        step++;
+      } break;
+    default: break;
+  }
+  resetPathTime();
+}
 
 // The primary navigation function that should be used when navigating the maze.
 //      This should not be called while inside of a room
 void navigate() {
-  checkTurn();
+  if (checkTurn()) {
+    tryTurn();
+  }
   wallFollow();
 }
 
