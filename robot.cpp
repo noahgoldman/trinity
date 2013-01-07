@@ -174,11 +174,10 @@ void Robot::turn(const int direction, int reverse) {
     this->caster(90);
     this->motor(64 + turn_speed, 64 - turn_speed);
     while (angle < 160) {
-        double width = 1000 / (millis() - time);
-        angle += (this->gyro() / gyrorate)/width;
-        time = millis();
-        delay(5);
-        SerialUSB.println(angle);
+      double width = 1000 / (millis() - time);
+      angle += (this->gyro() / gyrorate)/width;
+      time = millis();
+      delay(5);
     }
   } else {
     if (reverse) {
@@ -198,12 +197,47 @@ void Robot::turn(const int direction, int reverse) {
       }
       double width = 1000 / (millis() - time);
       angle += (this->gyro() / gyrorate)/width;
+      SerialUSB.println(angle);
       time = millis();
       delay(5);
     }
   }
   this->caster(0);
   this->stop();
+}
+
+void Robot::turn_angle(const float target) {
+  float angle = 0;
+
+  int direction;
+  if (target > 0) {
+    direction = right;
+  } else {
+    direction = left;
+  }
+
+  this->caster(45 * direction);
+  this->motorTurn(direction, 0);
+
+  unsigned int time = millis();
+  while ((direction == right && angle < target) ||
+      (direction == left && angle > target)) {
+    double width = 1000 / (millis() - time);
+    angle += (this->gyro() / gyrorate)/width;
+    SerialUSB.println(angle);
+    time = millis();
+    delay(5);
+  }
+  this->stop();
+  this->caster(0);
+}
+
+int Robot::checkTurnAngle(const float angle, const float target) {
+  if (target < 0) {
+    return (angle < target);
+  } else {
+   return (angle > target);
+  }
 }
 
 void Robot::UV(const int direction) {
@@ -215,7 +249,7 @@ void Robot::caster(float angle) {
 }
 
 void Robot::tower(float angle) {
-  this->tower_servo.write(center + angle);
+  this->tower_servo.write(center - angle);
 }
 
 // This function simply sets the motors to the base_speed
@@ -306,12 +340,10 @@ void Robot::i2cInitMessage(i2c_msg *msg, uint8 *data, int read) {
 }
 
 void Robot::configMagnetometer() {
-  // Set the mode to continuous measurement
-  wire.begin(MAG_ADDR);
-  wire.beginTransmission(MAG_ADDR);
-  wire.send(0x02);
-  wire.send(0x00);
-  wire.endTransmission();
+  i2c_init(I2C1);
+  i2c_master_enable(I2C1, 0);
+
+
 }
 
 int Robot::heading() {

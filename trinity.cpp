@@ -23,6 +23,7 @@ const int path_margin = 20;
 const int speed = 90;
 const int turn_speed = 26;
 const int turn_delay = 1500;
+const int flame_max = 500;
 
 int on;
 
@@ -209,10 +210,10 @@ void escape() {
 //
 // Do a sweep for the max flame value then fire the fans
 void extinguish() {
-  int tower_angle = -100;
+  int tower_angle = 100;
   int max = 0;
-  int fire_angle;
-  while (tower_angle++ <= 90) {
+  int fire_angle = 0;
+  while (tower_angle >= -90) {
     robot.tower(tower_angle);
 
     int current_flame = 0;
@@ -224,11 +225,21 @@ void extinguish() {
       max = current_flame;
       fire_angle = tower_angle;
     }
+    --tower_angle;
     delay(10);
   }
 
+  fire_angle += 8;
   robot.tower(fire_angle);
+  SerialUSB.println(fire_angle);
   delay(1000);
+
+  robot.turn_angle(fire_angle);
+
+  robot.motor();
+  while (robot.flame() < flame_max) {}
+  robot.stop();
+
   robot.fan();
 }
 
@@ -301,7 +312,10 @@ void loop() {
     navigate();
   }
   */
+  /*
   extinguish();
+  */
+  robot.turn(left);
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad
