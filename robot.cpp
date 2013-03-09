@@ -14,16 +14,6 @@ const float center = 67;
 int gyrozero = 1324.9;
 const float gyrorate = 4.25;
 
-// Pins
-const int flamepin = 20;
-const int relay = 35;
-const int gyropin = 12;
-const int left_back = 17, left_front = 16, right_back = 19, right_front = 18,
-      distance_front = 15, distance_back = 10;
-const int caster_pin = 27, tower_pin = 28;
-const int uvtron = 37, line = 36;
-const int red = 24, blue = 25, green = 26;
-
 HardWire Magneto(1,I2C_BUS_RESET);
 
 // Assign the threshold to

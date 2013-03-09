@@ -12,6 +12,9 @@ $(BUILD_PATH)/robot.o: robot.cpp
 $(BUILD_PATH)/trinity.o: trinity.cpp
 	$(SILENT_CXX) $(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
 
+$(BUILD_PATH)/test.o: test.cpp
+		$(SILENT_CXX) $(CXX) $(CFLAGS) $(CXXFLAGS) $(LIBMAPLE_INCLUDES) $(WIRISH_INCLUDES) $(USER_INCLUDES) -o $@ -c $< 
+
 $(BUILD_PATH)/libmaple.a: $(BUILDDIRS) $(TGT_BIN)
 	- rm -f $@
 	$(AR) crv $(BUILD_PATH)/libmaple.a $(TGT_BIN)
