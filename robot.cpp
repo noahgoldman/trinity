@@ -24,7 +24,7 @@ const int caster_pin = 27, tower_pin = 28;
 const int uvtron = 37, line = 36;
 const int red = 24, blue = 25, green = 26;
 
-TwoWire wire(5, 9);
+HardWire Magneto(1,I2C_BUS_RESET);
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
@@ -327,47 +327,27 @@ void Robot::setup() {
   digitalWrite(relay, LOW);
 }
 
-void Robot::i2cInitMessage(i2c_msg *msg, uint8 *data, int read) {
-  msg->addr = MAG_ADDR;
-  if (read) {
-    msg->flags = I2C_MSG_READ;
-  } else {
-    msg->flags = 0;
-  }
-  msg->data = data;
-  msg->length = sizeof(data);
-  msg->xferred = 0;
-}
-
 void Robot::configMagnetometer() {
-  i2c_init(I2C1);
-  i2c_master_enable(I2C1, 0);
-
-
+  Magneto.beginTransmission(MAGADR);
+  Magneto.send(0x02);
+  Magneto.send(0x00);
+  Magneto.endTransmission();
 }
 
 int Robot::heading() {
   int x, y, z;
-
-  // Select the register to start.receiveing data from
-  wire.beginTransmission(MAG_ADDR);
-  wire.send(0x03);
-  wire.endTransmission();
-
-  // Read data from each axis.
-  // All registers must be.receive even though we only use x and y
-  wire.requestFrom(MAG_ADDR, 6);
-  if (6 <= wire.available()) {
-    // Combine the complement values to get the actual.receiveings
-    x = wire.receive() << 8;
-    x |= wire.receive();
-    z = wire.receive() << 8;
-    z |= wire.receive();
-    y = wire.receive() << 8;
-    y |= wire.receive();
+  Magneto.beginTransmission(MAGADR);
+  Magneto.send(0x03);
+  Magneto.endTransmission();
+  Magneto.requestFrom(MAGADR, 6);
+  if(6<=Magneto.available()){
+    x=Magneto.receive()<<8; //X msb
+    x|=Magneto.receive(); //X lsb
+    y=Magneto.receive()<<8; //Y msb
+    y|=Magneto.receive(); //Y lsb
+    z=Magneto.receive()<<8; //Z msb
+    z|=Magneto.receive(); //Z lsb
   }
-
-
   // Both x and y need to have their centers adjusted and x's range
   // is changed as well
   x -= 580;
@@ -375,6 +355,13 @@ int Robot::heading() {
   y += 135.5;
   z += 167;
   z *= 1367/1174;
+
+  SerialUSB.print("x: ");
+  SerialUSB.print(x);
+  SerialUSB.print("  y: ");
+  SerialUSB.print(y);
+  SerialUSB.print("  z: ");
+  SerialUSB.println(z);
 
   float heading = atan2(x, y);
 
