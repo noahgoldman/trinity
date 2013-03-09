@@ -274,33 +274,6 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  /*
-  SerialUSB.print("front: ");
-  SerialUSB.print(robot.getDistance(15));
-  SerialUSB.print("right front: ");
-  SerialUSB.print(robot.getDistance(18));
-  SerialUSB.print(" right back: ");
-  SerialUSB.print(robot.getDistance(19));
-  SerialUSB.print(" left front: ");
-  SerialUSB.print(robot.getDistance(16));
-  SerialUSB.print(" left back: ");
-  SerialUSB.println(robot.getDistance(17));
-  delay(1000);
-  */
-  /*
-  robot.tower(0);
-  int trials = 100000;
-  unsigned long int count_front = 0;
-  unsigned long int count_back = 0;
-  for (int i = 0; i < trials; i++) {
-    count_front += analogRead(20);
-  }
-
-  int avg_front = count_front / trials;
-  SerialUSB.print("front: ");
-  SerialUSB.print(avg_front);
-  */
-  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -311,11 +284,6 @@ void loop() {
   else {
     navigate();
   }
-  */
-  /*
-  extinguish();
-  */
-  robot.turn(left);
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad

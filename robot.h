@@ -37,6 +37,17 @@ class Robot {
         void led_off();
         void driveStraight();
 
+        // Pins
+        const static int flamepin = 2;
+        const static int relay = 6;
+        const static int gyropin = 10;
+        const static int left_back = 15, left_front = 20, right_back = 17, right_front = 18,
+              distance_front = 19, distance_back = 16;
+        const static int caster_pin = 14, tower_pin = 11;
+        const static int uvtron = 12, line = 13;
+        const static int start_button = 3;
+        const static int red = 24, blue = 25, green = 26;
+
     private:
         float calcAngle(float distance1, float distance2);
         const float distanceRegression(float voltage, int old) const;
