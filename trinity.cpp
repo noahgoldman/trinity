@@ -274,19 +274,18 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-    /*
-  SerialUSB.print("front: ");
-  SerialUSB.print(robot.getDistance(15));
-  SerialUSB.print("right front: ");
-  SerialUSB.print(robot.getDistance(18));
+  SerialUSB.print(" front: ");
+  SerialUSB.print(robot.getDistance(robot.distance_front));
+  SerialUSB.print(" right front: ");
+  SerialUSB.print(robot.getDistance(robot.right_front));
   SerialUSB.print(" right back: ");
-  SerialUSB.print(robot.getDistance(19));
+  SerialUSB.print(robot.getDistance(robot.right_back));
   SerialUSB.print(" left front: ");
-  SerialUSB.print(robot.getDistance(16));
+  SerialUSB.print(robot.getDistance(robot.left_front));
   SerialUSB.print(" left back: ");
-  SerialUSB.println(robot.getDistance(17));
+  SerialUSB.println(robot.getDistance(robot.left_back));
   delay(1000);
-  */
+
   /*
   robot.tower(0);
   int trials = 100000;
@@ -301,6 +300,7 @@ void loop() {
   SerialUSB.print(avg_front);
   */
 
+  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -311,6 +311,7 @@ void loop() {
   else {
     navigate();
   }
+  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad

@@ -25,7 +25,7 @@ Robot::Robot(const float close_threshold, const float distance_between,
 const float Robot::getDistance(const int sensor) const {
   int voltage = analogRead(sensor);
   float distance;
-  if (sensor == distance_front || sensor == distance_back) {
+  if (sensor == this->distance_front || sensor == this->distance_back) {
     distance = this->distanceRegression(voltage, 1);
   } else {
     distance = this->distanceRegression(voltage, 0);
