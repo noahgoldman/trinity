@@ -8,6 +8,8 @@
 
 #include <wirish/wirish.h>
 
+#include "robot.h"
+
 // ASCII escape character
 #define ESC       ((uint8)27)
 
@@ -21,6 +23,7 @@ uint8 gpio_state[BOARD_NR_GPIO_PINS];
 
 const char* dummy_data = ("123456789012345678901234567890\r\n"
                           "123456789012345678901234567890\r\n");
+Robot robot(22, 17, 90, 26);
 
 // Commands
 void cmd_print_help(void);
@@ -256,7 +259,7 @@ void loop () {
             cmd_gpio_qa();
             break;
 
-        case 'p':
+        case 'l':
             SerialUSB.print("front: ");
             SerialUSB.print(robot.getDistance(15));
             SerialUSB.print("right front: ");
@@ -270,10 +273,10 @@ void loop () {
             break;
 
         case 'q':
+            {
             robot.tower(0);
             int trials = 100000;
             unsigned long int count_front = 0;
-            unsigned long int count_back = 0;
             for (int i = 0; i < trials; i++) {
               count_front += analogRead(20);
             }
@@ -282,6 +285,7 @@ void loop () {
             SerialUSB.print("front: ");
             SerialUSB.print(avg_front);
             break;
+            }
 
         default: // -------------------------------
             SerialUSB.print("Unexpected byte: 0x");

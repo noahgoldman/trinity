@@ -2,10 +2,10 @@
 
 #include "./robot.h"
 #include <math.h>
-#include <Wire/Wire.h>
+#include <Wire/HardWire.h>
 #include <libmaple/i2c.h>
 
-#define MAG_ADDR 0x1E
+#define MAGADR 0x1E
 #define EMATH 2.718281828459045235360287
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
@@ -325,7 +325,7 @@ void Robot::configMagnetometer() {
 }
 
 int Robot::heading() {
-  int x, y, z;
+  int x = 0, y = 0, z = 0;
   Magneto.beginTransmission(MAGADR);
   Magneto.send(0x03);
   Magneto.endTransmission();

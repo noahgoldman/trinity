@@ -110,6 +110,11 @@ install: $(BUILD_PATH)/$(BOARD).bin
 	@echo "Install target:" $(INSTALL_TARGET)
 	$(UPLOAD_$(INSTALL_TARGET))
 
+test: INSTALL_TARGET = $(shell cat $(BUILD_PATH)/build-type 2>/dev/null)
+test: $(BUILD_PATH)/test.bin
+	@echo "Install target:" $(INSTALL_TARGET)
+	$(UPLOAD_$(INSTALL_TARGET))
+
 # Force a rebuild if the target changed
 PREV_BUILD_TYPE = $(shell cat $(BUILD_PATH)/build-type 2>/dev/null)
 build-check:
