@@ -14,8 +14,6 @@ const float center = 67;
 int gyrozero = 1324.9;
 const float gyrorate = 4.25;
 
-HardWire Magneto(1,I2C_BUS_RESET);
-
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
     const int speed, const int turn_speed)
@@ -318,47 +316,10 @@ void Robot::setup() {
 }
 
 void Robot::configMagnetometer() {
-  Magneto.beginTransmission(MAGADR);
-  Magneto.send(0x02);
-  Magneto.send(0x00);
-  Magneto.endTransmission();
 }
 
 int Robot::heading() {
-  int x = 0, y = 0, z = 0;
-  Magneto.beginTransmission(MAGADR);
-  Magneto.send(0x03);
-  Magneto.endTransmission();
-  Magneto.requestFrom(MAGADR, 6);
-  if(6<=Magneto.available()){
-    x=Magneto.receive()<<8; //X msb
-    x|=Magneto.receive(); //X lsb
-    y=Magneto.receive()<<8; //Y msb
-    y|=Magneto.receive(); //Y lsb
-    z=Magneto.receive()<<8; //Z msb
-    z|=Magneto.receive(); //Z lsb
-  }
-  // Both x and y need to have their centers adjusted and x's range
-  // is changed as well
-  x -= 580;
-  x *= -483/423;
-  y += 135.5;
-  z += 167;
-  z *= 1367/1174;
-
-  SerialUSB.print("x: ");
-  SerialUSB.print(x);
-  SerialUSB.print("  y: ");
-  SerialUSB.print(y);
-  SerialUSB.print("  z: ");
-  SerialUSB.println(z);
-
-  float heading = atan2(x, y);
-
-  // Correct headings for negative values
-  if (heading < 0) heading += 2*PI;
-
-  return heading * 180/PI;
+  return 0;
 }
 
 float Robot::gyro() {
