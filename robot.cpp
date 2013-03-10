@@ -29,7 +29,7 @@ const float Robot::getDistance(const int sensor) const {
     distance = this->distanceRegression(voltage, 1);
   } 
   else if(sensor == this->right_front){
-    distance = 1 / (0.000229437*voltage - 0.00941669)-0.119366;
+    distance = 1 / (0.000229437*6.066*voltage - 0.00941669)-0.119366;
   }
   else {
     distance = this->distanceRegression(voltage, 0);
@@ -261,10 +261,10 @@ void Robot::motor() {
 
 void Robot::motor(int left, int right) {
   if (left == 64 && right == 64) {
-    Serial1.write(byte(0));
+    Serial2.write(byte(0));
   } else {
-    Serial1.write(byte(left));
-    Serial1.write(byte(127 + right));
+    Serial2.write(byte(left));
+    Serial2.write(byte(127 + right));
   }
 }
 
@@ -308,7 +308,7 @@ void Robot::pinSetup() {
 }
 
 void Robot::setup() {
-  Serial1.begin(9600);
+  Serial2.begin(9600);
   SerialUSB.begin();
   this->caster_servo.attach(caster_pin);
   this->tower_servo.attach(tower_pin);

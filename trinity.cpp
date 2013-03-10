@@ -274,6 +274,7 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  /*
   SerialUSB.print(" front: ");
   SerialUSB.print(robot.getDistance(robot.distance_front));
   SerialUSB.print(" right front: ");
@@ -284,7 +285,10 @@ void loop() {
   SerialUSB.print(robot.getDistance(robot.left_front));
   SerialUSB.print(" left back: ");
   SerialUSB.println(robot.getDistance(robot.left_back));
+  SerialUSB.print(" back: ");
+  SerialUSB.println(robot.getDistance(robot.distance_back));
   delay(1000);
+  */
 
   /*
   robot.tower(0);
@@ -300,6 +304,7 @@ void loop() {
   SerialUSB.print(avg_front);
   */
 
+  robot.turn(left);
   /*
   interpret_ir();
   if (!initial_exit) {
