@@ -27,7 +27,11 @@ const float Robot::getDistance(const int sensor) const {
   float distance;
   if (sensor == this->distance_front || sensor == this->distance_back) {
     distance = this->distanceRegression(voltage, 1);
-  } else {
+  } 
+  else if(sensor == this->right_front){
+    distance = 1 / (0.000229437*voltage - 0.00941669)-0.119366;
+  }
+  else {
     distance = this->distanceRegression(voltage, 0);
   }
   return distance;
