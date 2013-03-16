@@ -23,7 +23,8 @@ const int path_margin = 20;
 const int speed = 90;
 const int turn_speed = 26;
 const int turn_delay = 1500;
-const int flame_max = 500;
+//const int flame_max = 500;
+const int flame_max = 5;
 
 int on;
 
@@ -42,7 +43,7 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 0;
+int start_room = 1;
 int step = 0;
 unsigned int path_time;
 
@@ -263,7 +264,7 @@ void set_leds() {
 void setup() {
   on = 1;
   robot.setup();
-  attachInterrupt(36, ir, RISING);
+  attachInterrupt(robot.line, ir, FALLING);
   resetPathTime();
 }
 
@@ -284,11 +285,40 @@ void loop() {
   SerialUSB.print(" left front: ");
   SerialUSB.print(robot.getDistance(robot.left_front));
   SerialUSB.print(" left back: ");
-  SerialUSB.println(robot.getDistance(robot.left_back));
+  SerialUSB.print(robot.getDistance(robot.left_back));
   SerialUSB.print(" back: ");
-  SerialUSB.println(robot.getDistance(robot.distance_back));
+  SerialUSB.print(robot.getDistance(robot.distance_back));
+  SerialUSB.print(" flame: ");
+  SerialUSB.print(robot.flame());
+  SerialUSB.print(" gyro: ");
+  SerialUSB.println(robot.gyro());
   delay(1000);
   */
+
+  /*
+  delay(1000);
+  robot.turn(right);
+  */
+  /*
+  unsigned int time = millis();
+  float angle = 0;
+  while (1) {
+    double width = 1000.0 / (millis() - time);
+    angle += (robot.gyro() / 4.25) / width;
+    time = millis();
+    SerialUSB.println(angle);
+    delay(5);
+  }
+  */
+
+  /*
+  robot.fan();
+  */
+  /*
+  extinguish();
+  */
+  //SerialUSB.print(digitalRead(robot.line));
+ // delay(250);
 
   /*
   robot.tower(0);
@@ -304,8 +334,23 @@ void loop() {
   SerialUSB.print(avg_front);
   */
 
-  robot.turn(left);
   /*
+  robot.tower(0);
+  int trials = 1000000;
+  unsigned long int count_front = 0;
+  unsigned long int count_back = 0;
+  for (int i = 0; i < trials; i++) {
+    count_front += analogRead(robot.gyropin);
+  }
+  int avg_front = count_front / trials;
+  SerialUSB.print("front: ");
+  SerialUSB.print(avg_front);
+  */
+
+
+  /*
+  robot.turn(left);
+  */
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -316,7 +361,6 @@ void loop() {
   else {
     navigate();
   }
-  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad

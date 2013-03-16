@@ -11,7 +11,7 @@
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
 const float center = 67;
-int gyrozero = 1324.9;
+int gyrozero = 1331;
 const float gyrorate = 4.25;
 
 // Assign the threshold to
@@ -29,7 +29,7 @@ const float Robot::getDistance(const int sensor) const {
     distance = this->distanceRegression(voltage, 1);
   } 
   else if(sensor == this->right_front){
-    distance = 1 / (0.000229437*6.066*voltage - 0.00941669)-0.119366;
+    distance = 51.668*pow(EMATH, (-0.000541897 * voltage));
   }
   else {
     distance = this->distanceRegression(voltage, 0);
