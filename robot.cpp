@@ -1,4 +1,4 @@
-// Copyright 2012, Pegasus Team
+// Copyright 2013, Pegasus Team
 
 #include "./robot.h"
 #include <math.h>
@@ -323,7 +323,6 @@ void Robot::configMagnetometer() {
 }
 
 int Robot::heading() {
-  return 0;
 }
 
 float Robot::gyro() {

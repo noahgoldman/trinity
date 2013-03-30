@@ -1,4 +1,4 @@
-// Copyright 2012, Pegasus Team
+// Copyright 2013, Pegasus Team
 
 #ifndef ROBOT_H_
 #define ROBOT_H_

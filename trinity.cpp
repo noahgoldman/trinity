@@ -1,4 +1,4 @@
-// Copyright 2012, Pegasus Team
+// Copyright 2013, Pegasus Team
 
 #include <stdio.h>
 #include <wirish/wirish.h>
@@ -136,9 +136,13 @@ void navigate() {
   wallFollow();
 }
 
-// This is the interrupt handler for the line sensor
+// This is the interrupt handler for the line sensor and uvtron
 void ir() {
   line = 1;
+}
+
+void uvtron() {
+  uv=1;
 }
 
 void exit() {
@@ -265,6 +269,7 @@ void setup() {
   on = 1;
   robot.setup();
   attachInterrupt(robot.line, ir, FALLING);
+  attachInterrupt(robot.uvtron, uvtron, RISING);
   resetPathTime();
 }
 
@@ -275,7 +280,6 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
-  /*
   SerialUSB.print(" front: ");
   SerialUSB.print(robot.getDistance(robot.distance_front));
   SerialUSB.print(" right front: ");
@@ -291,9 +295,11 @@ void loop() {
   SerialUSB.print(" flame: ");
   SerialUSB.print(robot.flame());
   SerialUSB.print(" gyro: ");
-  SerialUSB.println(robot.gyro());
+  SerialUSB.print(robot.gyro());
+  SerialUSB.print(" mag: ");
+  SerialUSB.print(robot.gyro());
+  SerialUSB.println();
   delay(1000);
-  */
 
   /*
   delay(1000);
@@ -351,6 +357,7 @@ void loop() {
   /*
   robot.turn(left);
   */
+  /*
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -361,6 +368,7 @@ void loop() {
   else {
     navigate();
   }
+  */
 }
 
 // This should do some kind of Wiring init thing that stops stuff from being bad
