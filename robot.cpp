@@ -2,10 +2,7 @@
 
 #include "./robot.h"
 #include <math.h>
-#include <Wire/HardWire.h>
-#include <libmaple/i2c.h>
 
-#define MAGADR 0x1E
 #define EMATH 2.718281828459045235360287
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
@@ -13,6 +10,8 @@ const int straight = front;
 const float center = 67;
 int gyrozero = 1331;
 const float gyrorate = 4.25;
+
+HardWire Robot::Magneto(1,0);
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
@@ -320,9 +319,69 @@ void Robot::setup() {
 }
 
 void Robot::configMagnetometer() {
+  //Set scale to +/- 1.3 Ga
+  this->Magneto.beginTransmission(0x1E);
+  this->Magneto.send(0x01); //ConfigurationRegisterB
+  this->Magneto.send(0x01<<5); // Setting for scale is in top 3 bits of register
+  this->Magneto.endTransmission();
+
+  //Set continouous measurement
+  this->Magneto.beginTransmission(0x1E);
+  this->Magneto.send(0x02); //Address of ModeRegister
+  this->Magneto.send(0x00); // Continous Measurement value
+  this->Magneto.endTransmission();
 }
 
-int Robot::heading() {
+float Robot::heading() {
+  //raw values
+  uint8 buffer[6];
+  //concatenated values
+  int x,y,z;
+  //adjusted values
+  float sx,sy,sz;
+
+  //Receive information
+  this->Magneto.beginTransmission(0x1E);
+  this->Magneto.send(0x03); //Address of X msb register.
+  this->Magneto.endTransmission();
+
+  //Get raw values
+  this->Magneto.requestFrom(0x1E, 6);
+  if(6<=this->Magneto.available()){
+    //Receive input from magnetometer
+    for(uint8 i = 0; i < 6; i++){
+      buffer[i]=this->Magneto.receive();
+    }
+  }
+
+  //Concatenate data
+  x= (buffer[0]<<8 ) | buffer[1]; //X
+  z= (buffer[2]<<8 ) | buffer[3]; //Z
+  y= (buffer[4]<<8 ) | buffer[5]; //Y
+
+  //Maple uses 4 byte int, but magnetometer uses 2 complement 2 byte int
+  x = (0x8000<x)? x-0x10000 : x;
+  y = (0x8000<y)? y-0x10000 : y;
+  z = (0x8000<z)? z-0x10000 : z;
+
+  //Adjust for magnetic interference on pegasus
+  x += 30;
+  y += 250;
+
+  //Adjusts for scale
+  sx = x*0.92;
+  sy = y*0.92;
+  sz = z*0.92;
+
+  float heading = atan2(sy, sx);
+  // Correct heading for declination value
+  // obtained from magnetic-declination.com
+  //heading-=0.2438;
+  // Correct headings for negative values and wrap
+  if (heading < 0) heading += 2*PI;
+  if (heading > 2*PI) heading -= 2*PI;
+
+  return heading*180/M_PI;
 }
 
 float Robot::gyro() {
