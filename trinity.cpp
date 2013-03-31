@@ -297,7 +297,7 @@ void loop() {
   SerialUSB.print(" gyro: ");
   SerialUSB.print(robot.gyro());
   SerialUSB.print(" mag: ");
-  SerialUSB.print(robot.heading());
+  SerialUSB.print(robot.gyro());
   SerialUSB.println();
   delay(1000);
 

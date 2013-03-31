@@ -4,9 +4,7 @@
 #define ROBOT_H_
 
 #include <Servo/Servo.h>
-#include <wirish/wirish.h>
-#include <Wire/HardWire.h>
-#include <math.h>
+#include <libmaple/i2c.h>
 
 class Robot {
     public:
@@ -21,7 +19,7 @@ class Robot {
         void turn(const int direction, int reverse);
         void turn_angle(const float angle);
         int checkTurnAngle(const float angle, const float target);
-        float heading();
+        int heading();
         void UV(const int direction);
         void caster(float angle);
         void tower(float angle);
@@ -62,7 +60,6 @@ class Robot {
 
         Servo caster_servo;
         Servo tower_servo;
-        static HardWire Magneto;
 
         float close;
         float sensor_distance;
