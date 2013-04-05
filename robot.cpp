@@ -1,9 +1,6 @@
 // Copyright 2013, Pegasus Team
 
 #include "./robot.h"
-#include <math.h>
-
-#define EMATH 2.718281828459045235360287
 
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
 const int straight = front;
@@ -11,7 +8,7 @@ const float center = 67;
 int gyrozero = 1331;
 const float gyrorate = 4.25;
 
-HardWire Robot::Magneto(1,0);
+//HardWire Robot::Magneto(1,0);
 
 // Assign the threshold to
 Robot::Robot(const float close_threshold, const float distance_between,
@@ -28,7 +25,7 @@ const float Robot::getDistance(const int sensor) const {
     distance = this->distanceRegression(voltage, 1);
   } 
   else if(sensor == this->right_front){
-    distance = 51.668*pow(EMATH, (-0.000541897 * voltage));
+    distance = 51.668*pow(M_E, (-0.000541897 * voltage));
   }
   else {
     distance = this->distanceRegression(voltage, 0);
@@ -39,9 +36,9 @@ const float Robot::getDistance(const int sensor) const {
 const float Robot::distanceRegression(float voltage, int old) const {
   float distance;
   if (old) {
-    distance = 64.2801 * pow(EMATH, (-0.000670484 * voltage));
+    distance = 64.2801 * pow(M_E, (-0.000670484 * voltage));
   } else {
-    distance = 46.8015 * pow(EMATH, (-0.000958948 * voltage));
+    distance = 46.8015 * pow(M_E, (-0.000958948 * voltage));
   }
   return distance;
 }
@@ -199,6 +196,8 @@ void Robot::turn(const int direction, int reverse) {
 
 void Robot::turn_angle(const float target) {
   float angle = 0;
+  unsigned int time = millis();
+  this->stop();
 
   int direction;
   if (target > 0) {
@@ -210,9 +209,8 @@ void Robot::turn_angle(const float target) {
   this->caster(45 * direction);
   this->motorTurn(direction, 0);
 
-  unsigned int time = millis();
-  while ((direction == right && angle < target) ||
-      (direction == left && angle > target)) {
+  while ((direction == left && angle > target) ||
+      (direction == right && angle < target)) {
     double width = 1000 / (millis() - time);
     angle += (this->gyro() / gyrorate)/width;
     SerialUSB.println(angle);
@@ -245,7 +243,7 @@ void Robot::tower(float angle) {
 
 // This function simply sets the motors to the base_speed
 void Robot::motor() {
-  int dist = this->getDistance(15);
+  int dist = this->getDistance(this->distance_front);
   int speed;
   if (dist < 12) {
     speed = 64;
@@ -293,6 +291,7 @@ void Robot::pinSetup() {
   pinMode(red, OUTPUT);
   pinMode(blue, OUTPUT);
   pinMode(green, OUTPUT);
+  pinMode(obled, OUTPUT);
   pinMode(BOARD_LED_PIN, OUTPUT);
 
   // Analog Inputs
@@ -314,10 +313,11 @@ void Robot::setup() {
 
   this->pinSetup();
 
-  this->configMagnetometer();
+  //this->configMagnetometer();
   digitalWrite(relay, LOW);
 }
 
+/*
 void Robot::configMagnetometer() {
   //Set scale to +/- 1.3 Ga
   this->Magneto.beginTransmission(0x1E);
@@ -365,8 +365,8 @@ float Robot::heading() {
   z = (0x8000<z)? z-0x10000 : z;
 
   //Adjust for magnetic interference on pegasus
-  x += 30;
-  y += 250;
+  x -= 10;
+  y += 320;
 
   //Adjusts for scale
   sx = x*0.92;
@@ -383,6 +383,7 @@ float Robot::heading() {
 
   return heading*180/M_PI;
 }
+*/
 
 float Robot::gyro() {
   return (analogRead(gyropin) - gyrozero);

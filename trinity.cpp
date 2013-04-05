@@ -17,14 +17,13 @@ const int straight = front;
 float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
-const float close = 22;
+const float close = 26;
 const int check_time = 0;
 const int path_margin = 20;
 const int speed = 90;
 const int turn_speed = 26;
 const int turn_delay = 1500;
-//const int flame_max = 500;
-const int flame_max = 5;
+const int flame_max = 500;
 
 int on;
 
@@ -57,6 +56,7 @@ float getWfError(const int dir) {
 
 // Primary wall following function
 void wallFollow() {
+  //SerialUSB.println("wallfollow");
   int dir = robot.wallFollowDir();
   if (dir == 0) {
     robot.driveStraight();
@@ -69,11 +69,12 @@ void wallFollow() {
 }
 
 void enter(const int dir) {
+  SerialUSB.println("enter");
   robot.turn(dir);
   while (!room) {
     robot.motor();
   }
-  robot.stop();
+  //robot.stop();
 }
 
 void resetPathTime() {
@@ -83,6 +84,7 @@ void resetPathTime() {
 // Turning and navigational logic works in the following manner (order is very
 //    important):
 void checkTurn() {
+  SerialUSB.println("checkturn");
   if (path_time < millis() && start_room == 2 && path[start_room][step] != uturn
       && (robot.open(front) && robot.open(right)
       && robot.getDistance(16) > close)) {
@@ -146,12 +148,13 @@ void uvtron() {
 }
 
 void exit() {
+  SerialUSB.println("exit");
   robot.driveStraight();
   delay(250);
   line = 0;
 
   while (robot.open(front) && !line) {
-    if (!robot.wallFollowDir()) {
+    if (robot.wallFollowDir() != 0) {
       wallFollow();
     } else {
       robot.driveStraight();
@@ -172,16 +175,15 @@ void interpret_ir() {
     exit();
     initial_exit = 1;
   }
-  /*
   else if (line && !room) {
     room = 1;
   }
-  */
   line = 0;
 }
 
 // This function will return the correct path to follow based on heading
 //    and wall distances
+/*
 void getPath() {
   float heading = robot.heading();
   if ((270 - path_margin) > heading && heading < (270 + path_margin)) {
@@ -194,12 +196,14 @@ void getPath() {
     start_room = 3;
   }
 }
+*/
 
 // This is looped continuously you leave the initial room
 //
 // The robot should simply wall follow forward until it hits a wall
 //    then turn left
 void escape() {
+  SerialUSB.println("escape");
   if (!robot.open(front) && robot.open(left)) {
     robot.turn(left);
   }
@@ -215,6 +219,7 @@ void escape() {
 //
 // Do a sweep for the max flame value then fire the fans
 void extinguish() {
+  SerialUSB.println("extinguish"); 
   int tower_angle = 100;
   int max = 0;
   int fire_angle = 0;
@@ -240,6 +245,7 @@ void extinguish() {
   delay(1000);
 
   robot.turn_angle(fire_angle);
+  robot.tower(0);
 
   robot.motor();
   while (robot.flame() < flame_max) {}
@@ -269,7 +275,7 @@ void setup() {
   on = 1;
   robot.setup();
   attachInterrupt(robot.line, ir, FALLING);
-  attachInterrupt(robot.uvtron, uvtron, RISING);
+  //attachInterrupt(robot.uvtron, uvtron, RISING);
   resetPathTime();
 }
 
@@ -280,6 +286,9 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  robot.caster(0);
+  SerialUSB.print(" line: ");
+  SerialUSB.print(digitalRead(robot.line));
   SerialUSB.print(" front: ");
   SerialUSB.print(robot.getDistance(robot.distance_front));
   SerialUSB.print(" right front: ");
@@ -296,8 +305,8 @@ void loop() {
   SerialUSB.print(robot.flame());
   SerialUSB.print(" gyro: ");
   SerialUSB.print(robot.gyro());
-  SerialUSB.print(" mag: ");
-  SerialUSB.print(robot.heading());
+  //SerialUSB.print(" mag: ");
+  //SerialUSB.print(robot.heading());
   SerialUSB.println();
   delay(1000);
 
@@ -322,9 +331,12 @@ void loop() {
   */
   /*
   extinguish();
+  delay(1000);
   */
-  //SerialUSB.print(digitalRead(robot.line));
- // delay(250);
+  /*
+  robot.turn_angle(20);
+  delay(1000);
+  */
 
   /*
   robot.tower(0);
@@ -357,7 +369,10 @@ void loop() {
   /*
   robot.turn(left);
   */
+
   /*
+  //TODO: remove once leds added
+  //digitalWrite(robot.obled, room);
   interpret_ir();
   if (!initial_exit) {
     escape();
@@ -370,6 +385,7 @@ void loop() {
   }
   */
 }
+
 
 // This should do some kind of Wiring init thing that stops stuff from being bad
 __attribute__((constructor)) void premain() {

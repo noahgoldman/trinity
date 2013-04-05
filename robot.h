@@ -21,7 +21,7 @@ class Robot {
         void turn(const int direction, int reverse);
         void turn_angle(const float angle);
         int checkTurnAngle(const float angle, const float target);
-        float heading();
+        //float heading();
         void UV(const int direction);
         void caster(float angle);
         void tower(float angle);
@@ -46,14 +46,15 @@ class Robot {
         const static int left_back = 15, left_front = 20, right_back = 17, right_front = 18,
               distance_front = 19, distance_back = 16;
         const static int caster_pin = 14, tower_pin = 11;
-        const static int uvtron = 12, line = 13;
+        const static int uvtron = 12, line = 34;
         const static int start_button = 3;
         const static int red = 24, blue = 25, green = 26;
+        const static int obled = 13;
 
     private:
         float calcAngle(float distance1, float distance2);
         const float distanceRegression(float voltage, int old) const;
-        void configMagnetometer();
+        //void configMagnetometer();
         int writeRegister(int deviceAddress, byte address, byte val);
         int readRegister(int deviceAddress, byte address);
         void configGyro();
@@ -62,7 +63,7 @@ class Robot {
 
         Servo caster_servo;
         Servo tower_servo;
-        static HardWire Magneto;
+        //static HardWire Magneto;
 
         float close;
         float sensor_distance;
