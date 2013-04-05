@@ -87,7 +87,7 @@ void checkTurn() {
   SerialUSB.println("checkturn");
   if (path_time < millis() && start_room == 2 && path[start_room][step] != uturn
       && (robot.open(front) && robot.open(right)
-      && robot.getDistance(16) > close)) {
+      && robot.open(left))) {
     robot.turn(path[start_room][step]);
     step++;
     resetPathTime();
