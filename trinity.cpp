@@ -17,10 +17,10 @@ const int straight = front;
 float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
-const float close = 30;
+const float close = 24;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 75;
+const int speed = 85;
 const int turn_speed = 26;
 const int turn_delay = 1500;
 const int flame_max = 500;
@@ -42,7 +42,7 @@ int path[6][7] = {
   {left, left, straight, uturn, left, END, END},
 };
 
-int start_room = 1;
+int start_room = 5;
 int step = 0;
 unsigned int path_time = 0;
 
@@ -87,6 +87,7 @@ void checkTurn() {
   SerialUSB.println("checkturn");
   if (path_time < millis() && start_room == 2 && path[start_room][step] != uturn
       && (robot.open(front) && robot.open(right)
+      //&& robot.getDistance(robot.left_front > close))) {
       && robot.open(left))) {
     robot.turn(path[start_room][step]);
     step++;
