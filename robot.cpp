@@ -56,6 +56,7 @@ int Robot::open(const int direction) const {
   case front:
     return (this->getDistance(distance_front) > this->close - 3);
     break;
+  case uturn:
   case back:
     return (this->getDistance(distance_back) > this->close);
     break;
@@ -144,36 +145,37 @@ void Robot::turn(const int direction) {
 }
 
 void Robot::turn(const int direction, int reverse) {
-  double angle = 0;
-  unsigned int time = millis();
-  float current_angle = 0;
-  if (this->wallFollowDir() == direction * -1) {
-    current_angle = this->getAngle(direction * -1);
-  }
-  this->stop();
-  if (direction == straight) {
-    while (!this->wallFollowDir()) {
-      this->caster(10);
-      this->motor();
-      delay(50);
+  if(this->open(direction)){
+    double angle = 0;
+    unsigned int time = millis();
+    float current_angle = 0;
+    if (this->wallFollowDir() == direction * -1) {
+      current_angle = this->getAngle(direction * -1);
     }
-  } else if (direction == uturn) {
-    this->led(straight, HIGH);
-    this->caster(90);
-    this->motor(64 + turn_speed, 64 - turn_speed);
-    while (angle < 160) {
-      double width = 1000 / (millis() - time);
-      angle += (this->gyro() / gyrorate)/width;
-      time = millis();
-      delay(5);
-    }
-  } else {
-    if (reverse) {
-      this->caster(45 * direction * -1);
+    this->stop();
+    if (direction == straight) {
+      while (!this->wallFollowDir()) {
+        this->caster(10);
+        this->motor();
+        delay(50);
+      }
+    } else if (direction == uturn) {
+      this->led(straight, HIGH);
+      this->caster(90);
+      this->motor(64 + turn_speed-10, 64 - turn_speed+10);
+      while (angle < 160) {
+        double width = 1000 / (millis() - time);
+        angle += (this->gyro() / gyrorate)/width;
+        time = millis();
+        delay(5);
+      }
     } else {
-      this->caster(45 * direction);
-    }
-    this->motorTurn(direction, reverse);
+      if (reverse) {
+        this->caster(45 * direction * -1);
+      } else {
+        this->caster(45 * direction);
+      }
+      this->motorTurn(direction, reverse);
 
     int kturn_state = 0;
     while (angle < (85 + current_angle) && angle > (-85 + current_angle)) {
@@ -189,9 +191,10 @@ void Robot::turn(const int direction, int reverse) {
       time = millis();
       delay(5);
     }
+    }
+    this->caster(0);
+    this->stop();
   }
-  this->caster(0);
-  this->stop();
 }
 
 void Robot::turn_angle(const float target) {
@@ -288,9 +291,9 @@ void Robot::pinSetup() {
   pinMode(relay, OUTPUT);
   pinMode(caster_pin, PWM);
   pinMode(tower_pin, PWM);
-  pinMode(red, OUTPUT);
-  pinMode(blue, OUTPUT);
-  pinMode(green, OUTPUT);
+  pinMode(this->red, OUTPUT);
+  pinMode(this->blue, OUTPUT);
+  pinMode(this->green, OUTPUT);
   pinMode(obled, OUTPUT);
   pinMode(BOARD_LED_PIN, OUTPUT);
 

@@ -5,7 +5,6 @@
 
 #include <Servo/Servo.h>
 #include <wirish/wirish.h>
-#include <Wire/HardWire.h>
 #include <math.h>
 
 class Robot {
@@ -48,7 +47,7 @@ class Robot {
         const static int caster_pin = 14, tower_pin = 11;
         const static int uvtron = 12, line = 34;
         const static int start_button = 3;
-        const static int red = 24, blue = 25, green = 26;
+        const static int red = 37, blue = 35, green = 36;
         const static int obled = 13;
 
     private:
@@ -59,7 +58,6 @@ class Robot {
         int readRegister(int deviceAddress, byte address);
         void configGyro();
         void motorTurn(const int direction, int reverse);
-        void i2cInitMessage(i2c_msg *msg, uint8 *data, int read);
 
         Servo caster_servo;
         Servo tower_servo;

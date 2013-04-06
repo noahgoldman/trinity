@@ -9,7 +9,7 @@
 #define END 10
 
 // These two constants are true if either uv or line is detected
-volatile int uv = 0, line, room = 0, initial_exit = 0;
+volatile int uv = 0, line, room = 0, initial_exit = 0, found = 0;
 
 // Operational constants
 const int left = -1, right = 1, uturn = 0, front = 2, back = 3;
@@ -17,10 +17,10 @@ const int straight = front;
 float ideal = 13;
 const float kPWall = 2;
 const float sensor_distance = 17;
-const float close = 26;
+const float close = 30;
 const int check_time = 0;
 const int path_margin = 20;
-const int speed = 90;
+const int speed = 75;
 const int turn_speed = 26;
 const int turn_delay = 1500;
 const int flame_max = 500;
@@ -44,7 +44,7 @@ int path[6][7] = {
 
 int start_room = 1;
 int step = 0;
-unsigned int path_time;
+unsigned int path_time = 0;
 
 Robot robot(close, sensor_distance, speed, turn_speed);
 
@@ -123,9 +123,17 @@ void checkTurn() {
     } else if (path_time < millis() && !robot.open(front)) {
       // If the robot is about to crash, it probably shouldn't
       // Run the next step in the path if the front is closed
-      robot.turn(path[start_room][step]);
-      step++;
-      resetPathTime();
+      if (path[start_room][step] == left || path[start_room][step] == right) {
+        if (robot.open(path[start_room][step])) {
+          robot.turn(path[start_room][step]);
+          step++;
+          resetPathTime();
+        }
+      } else {
+        robot.turn(path[start_room][step]);
+        step++;
+        resetPathTime();
+      }
     }
   }
 }
@@ -143,9 +151,11 @@ void ir() {
   line = 1;
 }
 
+/*
 void uvtron() {
   uv=1;
 }
+*/
 
 void exit() {
   SerialUSB.println("exit");
@@ -172,10 +182,13 @@ void exit() {
 
 void interpret_ir() {
   if (line && !initial_exit) {
+    robot.stop();
+    delay(1000);
+    robot.motor();
     exit();
     initial_exit = 1;
   }
-  else if (line && !room) {
+  else if (line && found && !room) {
     room = 1;
   }
   line = 0;
@@ -254,22 +267,27 @@ void extinguish() {
   robot.fan();
 }
 
-/*
 void set_leds() {
-  if (robot.wallFollowDir() == right) {
+  if (robot.open(right)) {
     robot.led(right, HIGH);
   }
   else {
     robot.led(right, LOW);
   }
-  if (robot.wallFollowDir() == left) {
+
+  if (robot.open(left)) {
     robot.led(left, HIGH);
   }
   else {
     robot.led(left, LOW);
   }
+
+  if (robot.open(front)) {
+    robot.led(straight, HIGH);
+  } else {
+    robot.led(straight, LOW);
+  }
 }
-*/
 
 void setup() {
   on = 1;
@@ -286,6 +304,7 @@ void setup() {
 //         sensor is activated
 //      -The extinguish function will be called until the flame is out
 void loop() {
+  /*
   robot.caster(0);
   SerialUSB.print(" line: ");
   SerialUSB.print(digitalRead(robot.line));
@@ -309,6 +328,7 @@ void loop() {
   //SerialUSB.print(robot.heading());
   SerialUSB.println();
   delay(1000);
+  */
 
   /*
   delay(1000);
@@ -370,7 +390,6 @@ void loop() {
   robot.turn(left);
   */
 
-  /*
   //TODO: remove once leds added
   //digitalWrite(robot.obled, room);
   interpret_ir();
@@ -383,7 +402,6 @@ void loop() {
   else {
     navigate();
   }
-  */
 }
 
 
